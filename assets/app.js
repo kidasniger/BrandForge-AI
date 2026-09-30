@@ -270,4 +270,4 @@ function setup(){
     const t=e.target.closest("[data-template]");if(t)applyTemplate(t.dataset.template);
   });
 }
-document.addEventListener("DOMContentLoaded",setup);
+document.addEventListener("DOMContentLoaded",()=>Promise.resolve(window.__BF_AUTH_READY||true).then(setup));
