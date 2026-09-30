@@ -22,8 +22,9 @@ function posts(){
   const p=state.ai?.posts;
   return Array.isArray(p)?p.map((x,i)=>({title:typeof x==="string"?"Post "+(i+1):(x.title||"Post "+(i+1)),text:typeof x==="string"?x:(x.text||""),type:typeof x==="string"?"Post":(x.type||"Social")})):[];
 }
-function saveCurrent(){localStorage.setItem("brandforge-project",JSON.stringify(state))}
-function loadCurrent(){try{const s=JSON.parse(localStorage.getItem("brandforge-project")||"null");if(s)Object.assign(state,s)}catch{}}
+function storageKey(base){const uid=String(window.__BF_USER_ID||"").trim();return uid?base+"::"+uid:base+"::guest"}
+function saveCurrent(){if(!window.__BF_USER_ID)return;localStorage.setItem(storageKey("brandforge-project"),JSON.stringify(state))}
+function loadCurrent(){if(!window.__BF_USER_ID)return;try{const s=JSON.parse(localStorage.getItem(storageKey("brandforge-project"))||"null");if(s)Object.assign(state,s)}catch{}}
 function toast(msg){const t=$("toast");if(!t)return;t.textContent=msg;t.classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.remove("show"),2400)}
 function copyText(v){navigator.clipboard?.writeText(v).then(()=>toast("Copié dans le presse-papiers")).catch(()=>toast("Copie non disponible"))}
 function readBrief(){
@@ -109,14 +110,14 @@ function renderGrowth(){
 }
 async function renderProjects(){
   const el=$("projectList");if(!el)return;
-  let all=JSON.parse(localStorage.getItem("brandforge-projects")||"[]");
+  let all=JSON.parse(localStorage.getItem(storageKey("brandforge-projects"))||"[]");
   if(window.BFCloud){
     try{
       const cloud=await window.BFCloud.listProjects();
       const map=new Map(all.map(p=>[p.projectId,p]));
       cloud.forEach(p=>map.set(p.projectId,{...map.get(p.projectId),...p,cloud:true}));
       all=[...map.values()].sort((a,b)=>new Date(b.savedAt||0)-new Date(a.savedAt||0));
-      localStorage.setItem("brandforge-projects",JSON.stringify(all.slice(0,50)));
+      localStorage.setItem(storageKey("brandforge-projects"),JSON.stringify(all.slice(0,50)));
     }catch{}
   }
   if(!all.length){el.innerHTML='<div class="empty" style="grid-column:1/-1"><h3>Aucun projet</h3>Crée une marque dans Studio pour commencer.</div>';return}
@@ -124,11 +125,11 @@ async function renderProjects(){
 }
 async function saveProject(){
   readBrief();
-  const all=JSON.parse(localStorage.getItem("brandforge-projects")||"[]");
+  const all=JSON.parse(localStorage.getItem(storageKey("brandforge-projects"))||"[]");
   const id=state.projectId||"p_"+Date.now();state.projectId=id;
   const snap={...state,savedAt:new Date().toISOString()};
   const i=all.findIndex(x=>x.projectId===id);if(i>=0)all[i]=snap;else all.unshift(snap);
-  localStorage.setItem("brandforge-projects",JSON.stringify(all.slice(0,50)));saveCurrent();renderProjects();toast("Projet enregistré localement");
+  localStorage.setItem(storageKey("brandforge-projects"),JSON.stringify(all.slice(0,50)));saveCurrent();renderProjects();toast("Projet enregistré localement");
   try{
     if(window.BFCloud){
       const cloudId=await window.BFCloud.upsertProject(state);
@@ -137,13 +138,13 @@ async function saveProject(){
   }catch(e){toast("Cloud non synchronisé : "+(e.message||"erreur"))}
 }
 async function loadProject(id){
-  let all=JSON.parse(localStorage.getItem("brandforge-projects")||"[]"),p=all.find(x=>x.projectId===id);
+  let all=JSON.parse(localStorage.getItem(storageKey("brandforge-projects"))||"[]"),p=all.find(x=>x.projectId===id);
   if(!p&&window.BFCloud){try{all=await window.BFCloud.listProjects();p=all.find(x=>x.projectId===id)}catch{}}
   if(!p)return;Object.assign(state,DEFAULT_STATE,p);saveCurrent();location.href="brand.html"
 }
 async function deleteProject(id){
-  const all=JSON.parse(localStorage.getItem("brandforge-projects")||"[]").filter(p=>p.projectId!==id);
-  localStorage.setItem("brandforge-projects",JSON.stringify(all));
+  const all=JSON.parse(localStorage.getItem(storageKey("brandforge-projects"))||"[]").filter(p=>p.projectId!==id);
+  localStorage.setItem(storageKey("brandforge-projects"),JSON.stringify(all));
   try{if(window.BFCloud)await window.BFCloud.deleteProject(id)}catch(e){toast("Suppression cloud échouée")}
   renderProjects();toast("Projet supprimé");
 }
@@ -166,7 +167,7 @@ function downloadableSite(){
 function saveSiteEdits(){state.siteEdits={headline:clean($("siteEditHeadline")?.value),description:clean($("siteEditDescription")?.value),cta:clean($("siteEditCta")?.value)};saveCurrent();renderSite();toast("Site mis à jour")}
 function renderAccount(){
   if($("accountName"))$("accountName").textContent=state.name||"Invité";
-  if($("accountProjects"))$("accountProjects").textContent=JSON.parse(localStorage.getItem("brandforge-projects")||"[]").length;
+  if($("accountProjects"))$("accountProjects").textContent=JSON.parse(localStorage.getItem(storageKey("brandforge-projects"))||"[]").length;
 }
 const templates={
   restaurant:{name:"Nova Table",businessType:"Restaurant / food",offer:"Restaurant urbain proposant une cuisine moderne avec réservation en ligne.",goal:"Augmenter les réservations",audience:"Actifs urbains, couples et groupes d’amis",tone:"Chaleureux & humain",promise:"Une expérience gourmande qui donne envie de revenir.",cta:"Réserver une table",style:"Editorial premium",region:"Ville + diaspora"},
@@ -211,7 +212,7 @@ async function setupAccount(){
         const profile=await window.BFCloud.getProfile();
         if($("planState"))$("planState").textContent="Plan "+(profile?.plan||"free")+" · "+(profile?.billing_status||"inactive");
       }catch{}
-      const local=JSON.parse(localStorage.getItem("brandforge-projects")||"[]");
+      const local=JSON.parse(localStorage.getItem(storageKey("brandforge-projects"))||"[]");
       const el=$("accountProjects");if(el)el.textContent=local.length;
       const cloudState=$("cloudState");if(cloudState)cloudState.textContent="Compte connecté. Les projets enregistrés sont synchronisés lorsque tu les sauvegardes.";
     }else{
@@ -220,8 +221,9 @@ async function setupAccount(){
     }
   }catch(e){$("authStatus").textContent="Cloud configuré mais indisponible : "+(e.message||"erreur")}
 }
-async function authSignup(){
-  try{const d=await window.BFCloud.signUp(clean($("authEmail").value),$("authPassword").value,clean($("authName").value),clean($("authPhone")?.value),clean($("authCountry")?.value)||"NE");toast(d.session?"Compte créé et connecté":"Compte créé — vérifie ton email");if(d.session){location.replace("dashboard.html")}else await setupAccount()}catch(e){toast(e.message||"Inscription impossible")}
+async function authDestination(){const p=new URLSearchParams(location.search).get("next");return p&&["studio.html","brand.html","content.html","assets.html","site.html","projects.html","growth.html","templates.html","dashboard.html"].some(x=>p===x||p.startsWith(x+"?")||p.startsWith(x+"#"))?p:"dashboard.html"}
+function authSignup(){
+  try{const d=await window.BFCloud.signUp(clean($("authEmail").value),$("authPassword").value,clean($("authName").value),clean($("authPhone")?.value),clean($("authCountry")?.value)||"NE");toast(d.session?"Compte créé et connecté":"Compte créé — vérifie ton email");if(d.session){location.replace(authDestination())}else await setupAccount()}catch(e){toast(e.message||"Inscription impossible")}
 }
 async function authSignin(){try{await window.BFCloud.signIn(clean($("authEmail").value),$("authPassword").value);toast("Connexion réussie");await setupAccount();renderProjects()}catch(e){toast(e.message||"Connexion impossible")}}
 async function authSignout(){try{await window.BFCloud.signOut();toast("Déconnexion réussie");await setupAccount()}catch(e){toast(e.message||"Déconnexion impossible")}}
