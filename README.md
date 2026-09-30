@@ -63,4 +63,4 @@ Une fois les services connectés, renseigner dans Vercel :
 - CHARIOW_PRODUCT_BUSINESS
 - CHARIOW_PULSE_SECRET (serveur uniquement)
 
-Le navigateur ne doit recevoir que l'URL Supabase et la clé publique/publishable Supabase via /api/config. Les clés service_role, Groq et Stripe secret restent côté serveur.
+Le navigateur ne doit recevoir que l'URL Supabase et la clé publique/publishable Supabase via /api/config. Les clés service_role, Groq, Chariow API et Pulse secret restent côté serveur.
