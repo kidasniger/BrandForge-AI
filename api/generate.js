@@ -99,7 +99,6 @@ export default async function handler(req) {
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
-            temperature: 0.9,
             responseMimeType: "application/json",
             responseSchema: schema,
             maxOutputTokens: 2200
