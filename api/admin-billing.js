@@ -44,7 +44,7 @@ module.exports=async function handler(req,res){
   if(!supabaseUrl||!anon||!service){send(res,500,{error:"Supabase admin non configuré."});return}
 
   try{
-    const token=String(req.headers?.authorization||"").replace(/^Bearer\\s+/i,"").trim();
+    const token=String(req.headers?.authorization||"").replace(/^Bearer\s+/i,"").trim();
     const admin=await getAdminUser(supabaseUrl,anon,token);
     if(!admin){send(res,403,{error:"Accès administrateur refusé."});return}
 
