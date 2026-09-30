@@ -107,18 +107,46 @@ function renderGrowth(){
   if($("offerIdeas"))$("offerIdeas").innerHTML=(r.offerIdeas||[]).map(x=>'<article class="card"><h4>'+esc(x.name||"Offre")+'</h4><p>'+esc(x.description||"")+'</p><p><strong>Idée de prix :</strong> '+esc(x.priceIdea||"À définir")+'</p></article>').join("")||'<div class="empty">Génère le plan commercial dans cette page.</div>';
   if($("keywords"))$("keywords").innerHTML=(r.keywords||[]).map(x=>"<li>"+esc(x)+"</li>").join("")||"<li>Les mots-clés apparaîtront après génération.</li>";
 }
-function renderProjects(){
-  const el=$("projectList");if(!el)return;const all=JSON.parse(localStorage.getItem("brandforge-projects")||"[]");
+async function renderProjects(){
+  const el=$("projectList");if(!el)return;
+  let all=JSON.parse(localStorage.getItem("brandforge-projects")||"[]");
+  if(window.BFCloud){
+    try{
+      const cloud=await window.BFCloud.listProjects();
+      const map=new Map(all.map(p=>[p.projectId,p]));
+      cloud.forEach(p=>map.set(p.projectId,{...map.get(p.projectId),...p,cloud:true}));
+      all=[...map.values()].sort((a,b)=>new Date(b.savedAt||0)-new Date(a.savedAt||0));
+      localStorage.setItem("brandforge-projects",JSON.stringify(all.slice(0,50)));
+    }catch{}
+  }
   if(!all.length){el.innerHTML='<div class="empty" style="grid-column:1/-1"><h3>Aucun projet</h3>Crée une marque dans Studio pour commencer.</div>';return}
-  el.innerHTML=all.map(p=>'<article class="project-card"><h3>'+esc(p.name||"Projet")+'</h3><p>'+esc(p.businessType||"")+' · '+esc(p.region||"")+'</p><p>'+esc((p.offer||"").slice(0,120))+'</p><div class="asset-actions"><button class="secondary" data-load="'+esc(p.projectId)+'">Ouvrir</button><button class="tiny danger" data-delete="'+esc(p.projectId)+'">Supprimer</button></div></article>').join("");
+  el.innerHTML=all.map(p=>'<article class="project-card"><h3>'+esc(p.name||"Projet")+'</h3><p>'+esc(p.businessType||"")+' · '+esc(p.region||"")+'</p><p>'+esc((p.offer||"").slice(0,120))+'</p><p class="muted">'+(p.cloud?"☁ Synchronisé":"Appareil")+'</p><div class="asset-actions"><button class="secondary" data-load="'+esc(p.projectId)+'">Ouvrir</button><button class="tiny danger" data-delete="'+esc(p.projectId)+'">Supprimer</button></div></article>').join("");
 }
-function saveProject(){
-  readBrief();const all=JSON.parse(localStorage.getItem("brandforge-projects")||"[]");const id=state.projectId||"p_"+Date.now();state.projectId=id;
-  const snap={...state,savedAt:new Date().toISOString()};const i=all.findIndex(x=>x.projectId===id);if(i>=0)all[i]=snap;else all.unshift(snap);
-  localStorage.setItem("brandforge-projects",JSON.stringify(all.slice(0,50)));saveCurrent();renderProjects();toast("Projet enregistré");
+async function saveProject(){
+  readBrief();
+  const all=JSON.parse(localStorage.getItem("brandforge-projects")||"[]");
+  const id=state.projectId||"p_"+Date.now();state.projectId=id;
+  const snap={...state,savedAt:new Date().toISOString()};
+  const i=all.findIndex(x=>x.projectId===id);if(i>=0)all[i]=snap;else all.unshift(snap);
+  localStorage.setItem("brandforge-projects",JSON.stringify(all.slice(0,50)));saveCurrent();renderProjects();toast("Projet enregistré localement");
+  try{
+    if(window.BFCloud){
+      const cloudId=await window.BFCloud.upsertProject(state);
+      if(cloudId){state.projectId=cloudId;saveCurrent();toast("Projet synchronisé dans le cloud");renderProjects();}
+    }
+  }catch(e){toast("Cloud non synchronisé : "+(e.message||"erreur"))}
 }
-function loadProject(id){const all=JSON.parse(localStorage.getItem("brandforge-projects")||"[]"),p=all.find(x=>x.projectId===id);if(!p)return;Object.assign(state,DEFAULT_STATE,p);saveCurrent();location.href="brand.html"}
-function deleteProject(id){const all=JSON.parse(localStorage.getItem("brandforge-projects")||"[]").filter(p=>p.projectId!==id);localStorage.setItem("brandforge-projects",JSON.stringify(all));renderProjects();toast("Projet supprimé")}
+async function loadProject(id){
+  let all=JSON.parse(localStorage.getItem("brandforge-projects")||"[]"),p=all.find(x=>x.projectId===id);
+  if(!p&&window.BFCloud){try{all=await window.BFCloud.listProjects();p=all.find(x=>x.projectId===id)}catch{}}
+  if(!p)return;Object.assign(state,DEFAULT_STATE,p);saveCurrent();location.href="brand.html"
+}
+async function deleteProject(id){
+  const all=JSON.parse(localStorage.getItem("brandforge-projects")||"[]").filter(p=>p.projectId!==id);
+  localStorage.setItem("brandforge-projects",JSON.stringify(all));
+  try{if(window.BFCloud)await window.BFCloud.deleteProject(id)}catch(e){toast("Suppression cloud échouée")}
+  renderProjects();toast("Projet supprimé");
+}
 function downloadBlob(content,name,type){const u=URL.createObjectURL(new Blob([content],{type})),a=document.createElement("a");a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),600)}
 function downloadSvg(svg,name){downloadBlob(svg,name,"image/svg+xml;charset=utf-8")}
 function downloadPng(svg,name,w,h){
@@ -152,10 +180,39 @@ function renderTemplates(){
   el.innerHTML=Object.entries(templates).map(([k,t])=>'<article class="feature template-card"><div class="feature-icon">✦</div><h3>'+esc(t.name)+'</h3><p>'+esc(t.businessType)+' · '+esc(t.goal)+'</p><div class="asset-actions"><button class="primary" data-template="'+k+'">Utiliser ce modèle</button></div></article>').join("");
 }
 function renderPricing(){
-  const el=$("pricingNote");if(el)el.textContent="La tarification est présentée comme une offre produit et reste à configurer avant mise en paiement.";
+  const el=$("pricingNote");if(el)el.textContent="Les plans Pro et Business sont préparés pour Checkout. Le paiement réel nécessite la connexion Stripe et les Price IDs de production.";
+}
+async function setupAccount(){
+  if(!$("authStatus"))return;
+  if(!window.BFCloud){$("authStatus").textContent="Mode local — connecte Supabase pour activer les comptes.";return}
+  try{
+    const user=await window.BFCloud.getUser();
+    const status=$("authStatus"),out=$("accountName"),signout=$("signoutBtn");
+    if(user){
+      status.textContent="Connecté · "+(user.email||"");
+      if(out)out.textContent=user.user_metadata?.full_name||user.email||"Compte";
+      if(signout)signout.style.display="block";
+      const local=JSON.parse(localStorage.getItem("brandforge-projects")||"[]");
+      const el=$("accountProjects");if(el)el.textContent=local.length;
+      const cloudState=$("cloudState");if(cloudState)cloudState.textContent="Compte connecté. Les projets enregistrés sont synchronisés lorsque tu les sauvegardes.";
+    }else{
+      status.textContent="Pas encore connecté.";
+      if(signout)signout.style.display="none";
+    }
+  }catch(e){$("authStatus").textContent="Cloud configuré mais indisponible : "+(e.message||"erreur")}
+}
+async function authSignup(){
+  try{const d=await window.BFCloud.signUp(clean($("authEmail").value),$("authPassword").value,clean($("authName").value));toast(d.session?"Compte créé et connecté":"Compte créé — vérifie ton email");await setupAccount()}catch(e){toast(e.message||"Inscription impossible")}
+}
+async function authSignin(){try{await window.BFCloud.signIn(clean($("authEmail").value),$("authPassword").value);toast("Connexion réussie");await setupAccount();renderProjects()}catch(e){toast(e.message||"Connexion impossible")}}
+async function authSignout(){try{await window.BFCloud.signOut();toast("Déconnexion réussie");await setupAccount()}catch(e){toast(e.message||"Déconnexion impossible")}}
+function setupCheckoutLinks(){
+  document.querySelectorAll("[data-plan]").forEach(a=>a.addEventListener("click",async e=>{
+    e.preventDefault();try{await window.BFCloud.checkout(a.dataset.plan)}catch(err){toast(err.message||"Checkout indisponible")}
+  }));
 }
 function setup(){
-  loadCurrent();fillInputs();renderTemplates();applyAll();renderPricing();
+  loadCurrent();fillInputs();renderTemplates();applyAll();renderPricing();setupAccount();
   if($("generateBtn"))$("generateBtn").addEventListener("click",()=>generate("full"));
   if($("generateContentBtn"))$("generateContentBtn").addEventListener("click",()=>generate("content"));
   if($("generateGrowthBtn"))$("generateGrowthBtn").addEventListener("click",()=>generate("growth"));
@@ -166,6 +223,10 @@ function setup(){
   if($("downloadLogoPng"))$("downloadLogoPng").addEventListener("click",()=>downloadPng(logoSvg(),slug(state.name)+"-logo.png",1800,520));
   if($("downloadSite"))$("downloadSite").addEventListener("click",downloadableSite);
   if($("saveSiteEdits"))$("saveSiteEdits").addEventListener("click",saveSiteEdits);
+  if($("signupBtn"))$("signupBtn").addEventListener("click",authSignup);
+  if($("signinBtn"))$("signinBtn").addEventListener("click",authSignin);
+  if($("signoutBtn"))$("signoutBtn").addEventListener("click",authSignout);
+  setupCheckoutLinks();
   const health=$("health");if(health)fetch(API_URL+"?health=1",{cache:"no-store"}).then(r=>r.json()).then(d=>health.textContent=d.configured?"Groq connecté":"Clé Groq manquante").catch(()=>health.textContent="Backend indisponible");
   document.addEventListener("click",e=>{
     const c=e.target.closest("[data-copy]");if(c){const el=document.getElementById(c.dataset.copy);copyText(el?el.textContent:decodeURIComponent(c.dataset.copy))}
