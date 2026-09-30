@@ -179,8 +179,17 @@ function renderTemplates(){
   const el=$("templateList");if(!el)return;
   el.innerHTML=Object.entries(templates).map(([k,t])=>'<article class="feature template-card"><div class="feature-icon">✦</div><h3>'+esc(t.name)+'</h3><p>'+esc(t.businessType)+' · '+esc(t.goal)+'</p><div class="asset-actions"><button class="primary" data-template="'+k+'">Utiliser ce modèle</button></div></article>').join("");
 }
-function renderPricing(){
-  const el=$("pricingNote");if(el)el.textContent="Paiement via Chariow. Les prix et la durée des offres sont configurés sur les produits Chariow.";
+async function renderPricing(){
+  const el=$("pricingNote");if(el)el.textContent="Paiement via Chariow. Les prix sont gérés depuis l’administration.";
+  try{
+    const r=await fetch("https://brandforge-ai-xi.vercel.app/api/billing-config?ts="+Date.now(),{cache:"no-store"});
+    const d=await r.json();const map=Object.fromEntries((d.plans||[]).map(p=>[p.slug,p]));
+    const pro=map.pro,business=map.business;
+    if(pro&&$("pricePro"))$("pricePro").innerHTML=esc(String(pro.price_xof))+" FCFA <small>/ mois</small>";
+    if(business&&$("priceBusiness"))$("priceBusiness").innerHTML=esc(String(business.price_xof))+" FCFA <small>/ mois</small>";
+    if(pro&&$("accountProPrice"))$("accountProPrice").textContent=String(pro.price_xof)+" FCFA";
+    if(business&&$("accountBusinessPrice"))$("accountBusinessPrice").textContent=String(business.price_xof)+" FCFA";
+  }catch{}
 }
 async function setupAccount(){
   if(!$("authStatus"))return;
