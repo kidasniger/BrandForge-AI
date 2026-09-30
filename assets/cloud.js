@@ -9,15 +9,25 @@
       if(!window.supabase) return null;
       try{
         const response = await fetch("https://brandforge-ai-xi.vercel.app/api/config?ts="+Date.now(), {cache:"no-store"});
-        const cfg = await response.json();
-        if(!cfg.supabaseUrl || !cfg.supabaseAnonKey) return null;
-        client = window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{
-          auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+        const cfg = await response.json().catch(()=>({}));
+        const supabaseUrl = cfg.supabaseUrl || "https://uuystjjbgjpmzptmltmr.supabase.co";
+        const supabaseAnonKey = cfg.supabaseAnonKey || "sb_publishable_w3AbTGDs3GuVkK3tqHQPdw_8ujrYv89";
+        if(!supabaseUrl || !supabaseAnonKey) return null;
+        client = window.supabase.createClient(supabaseUrl,supabaseAnonKey,{
+          auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}
         });
         return client;
-      }catch{return null}
-    })();
-    return configPromise;
+      }catch{
+        try{
+          client = window.supabase.createClient(
+            "https://uuystjjbgjpmzptmltmr.supabase.co",
+            "sb_publishable_w3AbTGDs3GuVkK3tqHQPdw_8ujrYv89",
+            {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"pkce"}}
+          );
+          return client;
+        }catch{return null}
+      }
+    })();    return configPromise;
   }
 
   async function getClient(){return loadClient()}
