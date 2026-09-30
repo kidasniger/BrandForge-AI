@@ -1,39 +1,52 @@
 # BrandForge AI
 
-BrandForge AI est un studio web qui transforme un brief simple en concept de marque, textes marketing, idées de contenus sociaux et aperçu de landing page.
+BrandForge AI est un AI Launch Studio : un utilisateur décrit une idée de business et obtient une base de marque, du contenu, des assets visuels, un plan commercial et une landing page exportable.
 
-## Ce qui fonctionne maintenant
+## Produit actuel
 
-- brief en 3 étapes avec nom, offre, objectif, audience, ton, style et marché
-- génération locale cohérente du Brand Kit
-- palette de couleurs calculée à partir du projet
-- tagline, pitch, bio et CTA
-- 3 idées de posts prêtes à adapter avec bouton Copier
-- aperçu d'une landing page responsive
-- sauvegarde automatique dans `localStorage`
-- export du projet en JSON
-- interface responsive desktop/mobile
-- aucun secret/API key côté navigateur
+### Pages
+- Accueil : positionnement du produit et parcours
+- Studio : brief + génération Groq
+- Marque : Brand Kit, mission, positionnement, différenciation, valeurs, persona et palette
+- Contenu : copy, posts, calendrier 7 jours, séquence email, script de vente et message WhatsApp
+- Assets : logo SVG/PNG et 3 visuels sociaux SVG/PNG
+- Croissance : offres à tester, mots-clés et leviers commerciaux
+- Site : édition de titre/description/CTA et export d'un site HTML autonome
+- Projets : sauvegarde locale, ouverture et suppression
+- Templates : restaurant, e-commerce, coach et agence
+- Offres : présentation des plans Free, Pro et Business
+- Compte : état du compte et préparation du futur cloud
+
+### IA
+Le backend serverless utilise Groq avec la variable d'environnement GROQ_API_KEY. La clé n'est jamais envoyée au navigateur.
+Le moteur demande un schéma enrichi comprenant notamment : tagline, mission, positioning, differentiation, personality, values, persona, painPoints, desires, proofPoints, offerIdeas, posts, contentCalendar, landingHeadline, landingDescription, siteSections, palette, seoTitle, seoDescription, keywords, salesScript, whatsappPitch, emailSequence et faq.
+
+### Exports
+- PDF : rapport de lancement imprimable
+- SVG : logo et visuels sociaux
+- PNG : logo et visuels sociaux
+- HTML : landing page autonome
+
+### Données
+La version actuelle sauvegarde les projets dans localStorage afin de rester immédiatement utilisable sans compte.
+Le schéma Supabase est préparé dans supabase/schema.sql pour la couche de synchronisation cloud, avec profils, projets et Row Level Security.
 
 ## Démo
 
-Le site est déployé via GitHub Pages :
-
+GitHub Pages :
 https://kidasniger.github.io/BrandForge-AI/
 
-## Architecture actuelle
+Backend :
+https://brandforge-ai-xi.vercel.app/
 
-La version publique est volontairement sans backend : toute la génération visible dans la démo se fait dans le navigateur. Cela permet de tester l'UX sans exposer de clé API.
+## Architecture
 
-## Roadmap produit
+GitHub Pages → pages HTML + assets/app.js → Vercel /api/generate → Groq → JSON de marque / contenu / croissance
 
-1. connecter un backend/serverless sécurisé à un fournisseur IA
-2. enregistrer les projets dans une base de données et ajouter les comptes utilisateurs
-3. générer de vraies images de marque et assets
-4. permettre l'édition et l'export de la landing page
-5. ajouter un système de crédits, abonnement et paiement
-6. publier une landing page sur un sous-domaine personnalisé
+## Couche cloud
 
-## Important
+Le schéma Supabase est versionné, mais l'authentification et la synchronisation cloud ne sont pas considérées comme production tant que le projet Supabase réel et ses paramètres publics ne sont pas reliés à l'application.
 
-Ne place jamais une clé API OpenAI, Anthropic, Google ou autre dans `index.html` ou dans un dépôt public. Les secrets doivent rester côté serveur/backend avec des variables d'environnement.
+## Sécurité
+
+Ne place jamais une clé API Groq ou un autre secret dans le frontend ou dans le dépôt public. Les secrets doivent rester côté serveur via les variables d'environnement.
