@@ -29,7 +29,7 @@ Le moteur demande un schéma enrichi comprenant notamment : tagline, mission, po
 
 ### Données
 La version actuelle sauvegarde les projets dans localStorage afin de rester immédiatement utilisable sans compte.
-Le schéma Supabase est préparé dans supabase/schema.sql pour la couche de synchronisation cloud, avec profils, projets, suivi des Pulses Chariow et Row Level Security.
+Le schéma Supabase est préparé dans supabase/schema.sql pour la couche de synchronisation cloud, avec profils, projets, offres Chariow configurables depuis l’admin, suivi des Pulses Chariow et Row Level Security.
 
 ## Démo
 
@@ -43,6 +43,8 @@ https://brandforge-ai-xi.vercel.app/
 
 GitHub Pages → pages HTML + assets/app.js → Vercel /api/generate → Groq
 GitHub Pages → /api/checkout → Chariow Checkout → Pulse → /api/chariow-webhook → Supabase
+GitHub Pages → /api/admin-billing → Supabase (admin)
+GitHub Pages → /api/billing-config → tarifs publics
 
 ## Couche cloud
 
@@ -59,8 +61,9 @@ Une fois les services connectés, renseigner dans Vercel :
 - SUPABASE_ANON_KEY
 - SUPABASE_SERVICE_ROLE_KEY (serveur uniquement)
 - CHARIOW_API_KEY (serveur uniquement)
-- CHARIOW_PRODUCT_PRO
-- CHARIOW_PRODUCT_BUSINESS
 - CHARIOW_PULSE_SECRET (serveur uniquement)
+- ADMIN_EMAIL (email du compte administrateur)
+
+Les IDs produits et les prix Pro/Business se configurent depuis `admin.html`; ils ne sont plus obligatoirement stockés dans Vercel. Les anciennes variables `CHARIOW_PRODUCT_PRO` et `CHARIOW_PRODUCT_BUSINESS` restent acceptées comme secours.
 
 Le navigateur ne doit recevoir que l'URL Supabase et la clé publique/publishable Supabase via /api/config. Les clés service_role, Groq, Chariow API et Pulse secret restent côté serveur.
