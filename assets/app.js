@@ -221,7 +221,7 @@ async function setupAccount(){
   }catch(e){$("authStatus").textContent="Cloud configuré mais indisponible : "+(e.message||"erreur")}
 }
 async function authSignup(){
-  try{const d=await window.BFCloud.signUp(clean($("authEmail").value),$("authPassword").value,clean($("authName").value),clean($("authPhone")?.value),clean($("authCountry")?.value)||"NE");toast(d.session?"Compte créé et connecté":"Compte créé — vérifie ton email");await setupAccount()}catch(e){toast(e.message||"Inscription impossible")}
+  try{const d=await window.BFCloud.signUp(clean($("authEmail").value),$("authPassword").value,clean($("authName").value),clean($("authPhone")?.value),clean($("authCountry")?.value)||"NE");toast(d.session?"Compte créé et connecté":"Compte créé — vérifie ton email");if(d.session){location.replace("dashboard.html")}else await setupAccount()}catch(e){toast(e.message||"Inscription impossible")}
 }
 async function authSignin(){try{await window.BFCloud.signIn(clean($("authEmail").value),$("authPassword").value);toast("Connexion réussie");await setupAccount();renderProjects()}catch(e){toast(e.message||"Connexion impossible")}}
 async function authSignout(){try{await window.BFCloud.signOut();toast("Déconnexion réussie");await setupAccount()}catch(e){toast(e.message||"Déconnexion impossible")}}
