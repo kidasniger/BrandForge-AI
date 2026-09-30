@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BrandForge AI — Build your brand with AI</title>
+<meta name="description" content="BrandForge AI transforme une idée en identité digitale, contenu et présence web.">
+<style>
+:root{--bg:#08090d;--panel:#11131a;--text:#f5f7fb;--muted:#a7adbd;--line:#252938;--accent:#8b5cf6;--accent2:#22d3ee}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(circle at 80% 10%,#25145c 0,transparent 35%),var(--bg);color:var(--text);line-height:1.5}
+a{color:inherit;text-decoration:none}.wrap{max-width:1120px;margin:auto;padding:0 24px}
+nav{height:76px;display:flex;align-items:center;justify-content:space-between}.logo{font-weight:800;font-size:20px}.logo span{color:#a78bfa}.navbtn{border:1px solid var(--line);padding:10px 16px;border-radius:12px}
+.hero{padding:86px 0 70px;text-align:center}.badge{display:inline-block;padding:8px 13px;border:1px solid #3b2c63;background:#171225;border-radius:999px;color:#c4b5fd;font-size:13px}
+h1{font-size:clamp(46px,8vw,82px);line-height:.98;letter-spacing:-.055em;margin:22px auto;max-width:900px}.gradient{background:linear-gradient(90deg,#fff,#c4b5fd,#67e8f9);-webkit-background-clip:text;color:transparent}
+.hero p{max-width:680px;margin:0 auto;color:var(--muted);font-size:19px}.cta{display:inline-flex;margin-top:30px;padding:14px 22px;border-radius:14px;background:linear-gradient(135deg,var(--accent),#06b6d4);font-weight:700}
+section{padding:60px 0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{background:rgba(17,19,26,.82);border:1px solid var(--line);border-radius:20px;padding:24px}.card h3{margin:8px 0}.muted{color:var(--muted)}
+.studio{display:grid;grid-template-columns:1fr 1fr;gap:24px}.form,.preview{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:24px}label{display:block;font-size:13px;color:var(--muted);margin:14px 0 7px}input,textarea{width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:#0b0d12;color:var(--text);font:inherit}textarea{min-height:100px;resize:vertical}.generate{margin-top:18px;width:100%;padding:13px;border:0;border-radius:12px;background:#fff;color:#090a0d;font-weight:800;cursor:pointer}.previewbox{min-height:330px;border-radius:16px;padding:28px;background:linear-gradient(145deg,#171222,#0c1720);display:flex;flex-direction:column;justify-content:center}.previewbox h2{font-size:38px;margin:0 0 8px}.pill{display:inline-block;width:max-content;padding:6px 10px;border:1px solid #3b4253;border-radius:999px;color:#c4b5fd;font-size:12px}.result{margin-top:20px;color:#cbd5e1}.result strong{color:#fff}
+footer{border-top:1px solid var(--line);padding:30px 0;color:var(--muted);font-size:13px}
+@media(max-width:760px){.grid,.studio{grid-template-columns:1fr}.hero{padding-top:55px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav><div class="logo">BrandForge <span>AI</span></div><a class="navbtn" href="#studio">Try the studio</a></nav>
+<main>
+<section class="hero"><span class="badge">AI brand studio · MVP</span><h1>Turn your idea into a <span class="gradient">brand.</span></h1><p>Décris ton activité. BrandForge AI prépare une identité, une présence web et les premiers contenus marketing à partir d’une simple idée.</p><a class="cta" href="#studio">Créer mon concept →</a></section>
+<section><div class="grid">
+<div class="card"><div>✦</div><h3>Brand identity</h3><p class="muted">Nom, positionnement, ton et direction créative.</p></div>
+<div class="card"><div>◈</div><h3>Web presence</h3><p class="muted">Une landing page claire pour présenter ton activité.</p></div>
+<div class="card"><div>◎</div><h3>Content engine</h3><p class="muted">Idées de posts, campagnes et contenus promotionnels.</p></div>
+</div></section>
+<section id="studio"><div class="studio">
+<div class="form"><span class="pill">Prototype interactif</span><h2>Forge your brand</h2><p class="muted">Teste le concept sans connexion ni clé API.</p>
+<label>Nom du projet</label><input id="name" value="Niger Digital">
+<label>Ce que tu proposes</label><textarea id="offer">Création de sites web et contenus avec l'IA</textarea>
+<label>Objectif</label><input id="goal" value="Trouver plus de clients">
+<button class="generate" onclick="generate()">Générer l’aperçu</button>
+</div>
+<div class="preview"><div class="previewbox"><span class="pill">Brand concept</span><h2 id="pname">Niger Digital</h2><p id="poffer" class="muted">Création de sites web et contenus avec l'IA</p><div class="result"><strong>Positionnement</strong><br><span id="pgoal">Trouver plus de clients</span></div></div></div>
+</div></section>
+</main>
+<footer>BrandForge AI — Prototype MVP · Built for the next generation of creators.</footer>
+</div>
+<script>
+function generate(){const n=document.getElementById('name').value.trim()||'Your Brand';const o=document.getElementById('offer').value.trim()||'Une offre claire';const g=document.getElementById('goal').value.trim()||'Développer son activité';document.getElementById('pname').textContent=n;document.getElementById('poffer').textContent=o;document.getElementById('pgoal').textContent=g;}
+</script>
+</body>
+</html>
