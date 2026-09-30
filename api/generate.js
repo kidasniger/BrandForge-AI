@@ -1,4 +1,4 @@
-const MODEL = "gemini-3.8-flash";
+const MODEL = "openai/gpt-oss-120b";
 
 function corsHeaders(req) {
   const origin = req.headers.origin || "";
@@ -47,29 +47,24 @@ function parseModelJson(text) {
 
 module.exports = async function handler(req, res) {
   if (req.method === "OPTIONS") {
-    res.status(204).set(corsHeaders(req)).end();
+    res.statusCode = 204;
+    for (const [name, value] of Object.entries(corsHeaders(req))) {
+      res.setHeader(name, value);
+    }
+    res.end();
     return;
   }
 
-  const apiKey =
-    process.env.GEMINI_API_KEY ||
-    process.env.GEMINI_KEY ||
-    process.env.GOOGLE_API_KEY ||
-    "";
+  const apiKey = process.env.GROQ_API_KEY || "";
 
   if (req.method === "GET") {
     send(res, req, 200, {
       ok: true,
       service: "BrandForge AI backend",
+      provider: "Groq",
       model: MODEL,
       configured: Boolean(apiKey),
-      keyVariable: process.env.GEMINI_API_KEY
-        ? "GEMINI_API_KEY"
-        : process.env.GEMINI_KEY
-          ? "GEMINI_KEY"
-          : process.env.GOOGLE_API_KEY
-            ? "GOOGLE_API_KEY"
-            : null
+      keyVariable: apiKey ? "GROQ_API_KEY" : null
     });
     return;
   }
@@ -81,8 +76,8 @@ module.exports = async function handler(req, res) {
 
   if (!apiKey) {
     send(res, req, 500, {
-      error: "Gemini API key is missing on Vercel.",
-      details: "Add GEMINI_API_KEY or GEMINI_KEY to the Vercel project Environment Variables, then redeploy."
+      error: "Groq API key is missing on Vercel.",
+      details: "Add GROQ_API_KEY to the Vercel project Environment Variables, then redeploy."
     });
     return;
   }
@@ -100,29 +95,43 @@ module.exports = async function handler(req, res) {
     }
 
     const prompt = [
-      "Tu es BrandForge AI, un directeur de marque et copywriter senior.",
-      "À partir du brief JSON ci-dessous, crée une identité de marque cohérente et exploitable.",
-      "Réponds UNIQUEMENT avec un objet JSON valide. Aucun markdown et aucun texte avant ou après le JSON.",
-      "Le JSON doit contenir : tagline, positioning, personality, pitch, instagramBio, cta, posts (3 à 5 objets title/text), landingHeadline, landingDescription et palette (5 couleurs).",
-      "Écris en français. Sois concret, original et adapté à l'audience et au marché.",
+      "You are BrandForge AI, a senior brand strategist and copywriter.",
+      "Using the following brief, create a coherent, practical brand identity.",
+      "Return ONLY valid JSON. No markdown, no commentary, and no text outside the JSON.",
+      "Use exactly these top-level fields:",
+      "tagline, positioning, personality, pitch, instagramBio, cta, posts, landingHeadline, landingDescription, palette.",
+      "posts must contain 3 to 5 objects with title and text.",
+      "palette must contain exactly 5 color values as hex strings.",
+      "All user-facing brand copy must be written in French.",
+      "Be concrete, original, concise, and aligned with the audience, offer, objective, tone, market, and creative direction.",
       "",
       "BRIEF:",
       JSON.stringify(brief, null, 2)
     ].join("\n");
 
     const providerResponse = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent",
+      "https://api.groq.com/openai/v1/chat/completions",
       {
         method: "POST",
         headers: {
-          "x-goog-api-key": apiKey,
+          "Authorization": "Bearer " + apiKey,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            maxOutputTokens: 2200
-          }
+          model: MODEL,
+          messages: [
+            {
+              role: "system",
+              content: "Return only valid JSON matching the requested fields. Do not include markdown."
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          temperature: 0.4,
+          max_completion_tokens: 3000,
+          response_format: { type: "json_object" }
         })
       }
     );
@@ -131,26 +140,24 @@ module.exports = async function handler(req, res) {
 
     if (!providerResponse.ok) {
       send(res, req, providerResponse.status, {
-        error: "Gemini API error.",
+        error: "Groq API error.",
         details: raw && raw.error && raw.error.message
           ? raw.error.message
-          : "Gemini rejected the request."
+          : "Groq rejected the request."
       });
       return;
     }
 
     const text = raw &&
-      raw.candidates &&
-      raw.candidates[0] &&
-      raw.candidates[0].content &&
-      raw.candidates[0].content.parts &&
-      raw.candidates[0].content.parts[0] &&
-      raw.candidates[0].content.parts[0].text;
+      raw.choices &&
+      raw.choices[0] &&
+      raw.choices[0].message &&
+      raw.choices[0].message.content;
 
     if (!text) {
       send(res, req, 502, {
-        error: "Gemini returned no text.",
-        details: "The provider response contained no text candidate."
+        error: "Groq returned no text.",
+        details: "The provider response contained no assistant content."
       });
       return;
     }
@@ -160,7 +167,7 @@ module.exports = async function handler(req, res) {
       result = parseModelJson(text);
     } catch (error) {
       send(res, req, 502, {
-        error: "Gemini returned invalid JSON.",
+        error: "Groq returned invalid JSON.",
         details: error && error.message ? error.message : "Could not parse the model response."
       });
       return;
@@ -168,6 +175,7 @@ module.exports = async function handler(req, res) {
 
     send(res, req, 200, {
       ok: true,
+      provider: "Groq",
       model: MODEL,
       result
     });
