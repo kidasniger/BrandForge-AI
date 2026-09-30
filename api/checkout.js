@@ -25,15 +25,14 @@ module.exports=async function handler(req,res){
   if(req.method!=="POST"){send(res,405,{error:"Method not allowed"});return}
 
   const apiKey=process.env.CHARIOW_API_KEY||"";
-  const productPro=process.env.CHARIOW_PRODUCT_PRO||"";
-  const productBusiness=process.env.CHARIOW_PRODUCT_BUSINESS||"";
   const supabaseUrl=process.env.SUPABASE_URL||"";
   const anon=process.env.SUPABASE_ANON_KEY||"";
+  const service=process.env.SUPABASE_SERVICE_ROLE_KEY||"";
 
-  if(!apiKey||!productPro||!productBusiness||!supabaseUrl||!anon){
+  if(!apiKey||!supabaseUrl||!anon||!service){
     send(res,500,{
-      error:"Chariow n'est pas encore configuré.",
-      details:"Ajoute CHARIOW_API_KEY, CHARIOW_PRODUCT_PRO, CHARIOW_PRODUCT_BUSINESS, SUPABASE_URL et SUPABASE_ANON_KEY dans Vercel."
+      error:"Chariow/Supabase n'est pas encore configuré.",
+      details:"Il faut CHARIOW_API_KEY, SUPABASE_URL, SUPABASE_ANON_KEY et SUPABASE_SERVICE_ROLE_KEY dans Vercel."
     });
     return;
   }
@@ -44,9 +43,7 @@ module.exports=async function handler(req,res){
     const token=String(body.accessToken||"");
     const phone=String(body.phone||"").replace(/\D/g,"");
     const countryCode=String(body.countryCode||"NE").trim().toUpperCase();
-    const productId=plan==="pro"?productPro:plan==="business"?productBusiness:"";
-
-    if(!productId){send(res,400,{error:"Plan inconnu."});return}
+    if(!["pro","business"].includes(plan)){send(res,400,{error:"Plan inconnu."});return}
     if(!token){send(res,401,{error:"Connexion requise."});return}
     if(!phone){send(res,400,{error:"Numéro de téléphone requis pour le paiement Chariow."});return}
     if(!/^[A-Z]{2}$/.test(countryCode)){send(res,400,{error:"Code pays invalide."});return}
@@ -56,6 +53,15 @@ module.exports=async function handler(req,res){
     });
     const user=await ur.json().catch(()=>({}));
     if(!ur.ok||!user?.id){send(res,401,{error:"Session invalide."});return}
+
+    const plansResponse=await fetch(supabaseUrl+"/rest/v1/billing_plans?slug=eq."+encodeURIComponent(plan)+"&active=eq.true&select=slug,name,price_xof,chariow_product_id",{
+      headers:{apikey:service,Authorization:"Bearer "+service}
+    });
+    const plansData=await plansResponse.json().catch(()=>[]);
+    const configured=Array.isArray(plansData)?plansData[0]:null;
+    const legacyProduct=plan==="pro"?process.env.CHARIOW_PRODUCT_PRO:plan==="business"?process.env.CHARIOW_PRODUCT_BUSINESS:"";
+    const productId=String(configured?.chariow_product_id||legacyProduct||"").trim();
+    if(!plansResponse.ok||!productId){send(res,400,{error:"Ce plan n'est pas encore configuré par l'administrateur.",details:"Ouvre la page Administration et renseigne l'ID produit Chariow."});return}
 
     const name=parseName(user.user_metadata?.full_name||"BrandForge AI");
     const origin="https://kidasniger.github.io/BrandForge-AI";
@@ -67,7 +73,7 @@ module.exports=async function handler(req,res){
       last_name:name.last_name,
       phone:{number:phone,country_code:countryCode},
       redirect_url:origin+"/account.html?checkout=success",
-      custom_metadata:{user_id:user.id,plan}
+      custom_metadata:{user_id:user.id,plan,brandforge_plan_price_xof:configured?.price_xof||null}
     };
     if(forwarded)checkoutPayload.customer_ip=forwarded;
 
