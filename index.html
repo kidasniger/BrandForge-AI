@@ -397,7 +397,7 @@
         setView("brand");
       }catch(error){
         status.textContent = "IA indisponible";
-        $("engineNote").textContent = "Le backend Gemini n'est pas encore configuré ou déployé.";
+        $("engineNote").textContent = "Erreur Gemini : " + (error.message || "réponse inattendue du backend");
         showToast(error.message || "Erreur de génération");
         console.error(error);
       }finally{
