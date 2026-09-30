@@ -45,7 +45,7 @@
     if(!c) throw new Error("Cloud non configuré.");
     const {data,error}=await c.auth.signUp({
       email,password,
-      options:{data:{full_name:fullName||"",phone:phone||"",country_code:countryCode||"NE"},emailRedirectTo:location.origin+"/BrandForge-AI/account.html"}
+      options:{data:{full_name:fullName||"",phone:phone||"",country_code:countryCode||"NE"},emailRedirectTo:location.origin+"/BrandForge-AI/dashboard.html"}
     });
     if(error) throw error;
     return data;
@@ -107,7 +107,7 @@
     });
     const data=await response.json().catch(()=>({}));
     if(!response.ok||!data.ok) throw new Error([data.error,data.details].filter(Boolean).join(" — ")||"Checkout indisponible.");
-    if(data.step==="completed"){location.href="account.html?checkout=success";return}
+    if(data.step==="completed"){location.href="dashboard.html?checkout=success";return}
     if(data.url) location.href=data.url;
     else throw new Error("URL Chariow indisponible.");
   }
