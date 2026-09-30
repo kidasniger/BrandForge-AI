@@ -6,10 +6,16 @@ create table if not exists public.profiles (
   full_name text,
   plan text not null default 'free' check (plan in ('free','pro','business')),
   billing_status text not null default 'inactive',
-  stripe_customer_id text,
-  stripe_subscription_id text,
+  chariow_customer_id text,
+  chariow_last_sale_id text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
+);
+
+create table if not exists public.chariow_pulses (
+  delivery_id text primary key,
+  event_name text,
+  created_at timestamptz not null default now()
 );
 
 create table if not exists public.projects (
@@ -89,3 +95,4 @@ grant select on public.profiles to authenticated;
 grant select, insert, update, delete on public.projects to authenticated;
 grant all on public.profiles to service_role;
 grant all on public.projects to service_role;
+grant select, insert on public.chariow_pulses to service_role;
