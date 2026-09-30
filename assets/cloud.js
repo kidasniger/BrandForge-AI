@@ -45,7 +45,7 @@
     if(!c) throw new Error("Cloud non configuré.");
     const {data,error}=await c.auth.signUp({
       email,password,
-      options:{data:{full_name:fullName||""},emailRedirectTo:location.origin+"/account.html"}
+      options:{data:{full_name:fullName||""},emailRedirectTo:location.origin+"/BrandForge-AI/account.html"}
     });
     if(error) throw error;
     return data;
