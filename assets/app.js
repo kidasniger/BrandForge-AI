@@ -192,6 +192,10 @@ async function setupAccount(){
       status.textContent="Connecté · "+(user.email||"");
       if(out)out.textContent=user.user_metadata?.full_name||user.email||"Compte";
       if(signout)signout.style.display="block";
+      try{
+        const profile=await window.BFCloud.getProfile();
+        if($("planState"))$("planState").textContent="Plan "+(profile?.plan||"free")+" · "+(profile?.billing_status||"inactive");
+      }catch{}
       const local=JSON.parse(localStorage.getItem("brandforge-projects")||"[]");
       const el=$("accountProjects");if(el)el.textContent=local.length;
       const cloudState=$("cloudState");if(cloudState)cloudState.textContent="Compte connecté. Les projets enregistrés sont synchronisés lorsque tu les sauvegardes.";
@@ -227,6 +231,7 @@ function setup(){
   if($("signinBtn"))$("signinBtn").addEventListener("click",authSignin);
   if($("signoutBtn"))$("signoutBtn").addEventListener("click",authSignout);
   setupCheckoutLinks();
+  if(location.search.includes("checkout=success"))toast("Paiement terminé — ton abonnement sera activé après confirmation Stripe.");
   const health=$("health");if(health)fetch(API_URL+"?health=1",{cache:"no-store"}).then(r=>r.json()).then(d=>health.textContent=d.configured?"Groq connecté":"Clé Groq manquante").catch(()=>health.textContent="Backend indisponible");
   document.addEventListener("click",e=>{
     const c=e.target.closest("[data-copy]");if(c){const el=document.getElementById(c.dataset.copy);copyText(el?el.textContent:decodeURIComponent(c.dataset.copy))}
