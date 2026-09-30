@@ -111,14 +111,14 @@
 
     <main>
       <section class="hero">
-        <span class="eyebrow"><span class="dot"></span> AI brand studio · Gemini AI</span>
+        <span class="eyebrow"><span class="dot"></span> AI brand studio · Groq AI</span>
         <h1>Ton idée mérite une vraie <span class="gradient">présence digitale.</span></h1>
         <p>BrandForge transforme quelques phrases en un concept de marque cohérent : positionnement, identité visuelle, contenus sociaux et landing page.</p>
         <div class="hero-actions">
           <button class="primary" id="heroStart2">Lancer le studio →</button>
           <a class="ghost" href="#how">Voir comment ça marche</a>
         </div>
-        <div class="mini-note">Aucune clé API dans le navigateur · backend sécurisé · Gemini AI</div>
+        <div class="mini-note">Aucune clé API dans le navigateur · backend sécurisé · Groq AI</div>
       </section>
 
       <section class="stats" aria-label="Fonctionnalités">
@@ -147,7 +147,7 @@
 
         <div class="studio-shell">
           <aside class="panel wizard">
-            <div class="panel-title"><h3>Nouveau projet</h3><span class="status" id="engineStatus">Gemini AI</span></div>
+            <div class="panel-title"><h3>Nouveau projet</h3><span class="status" id="engineStatus">Groq AI</span></div>
 
             <div class="steps">
               <div class="step active" data-step="1"><span class="step-n">1</span><span>Brief</span></div>
@@ -192,8 +192,8 @@
               <label for="region">Marché cible</label>
               <input id="region" value="Afrique francophone" autocomplete="off">
 
-              <div class="help">Le brief sera envoyé à notre backend sécurisé. Ta clé Gemini reste côté serveur.</div>
-              <div class="form-actions"><button class="secondary" id="back3">← Retour</button><button class="primary" id="generate">Générer avec Gemini ✦</button></div>
+              <div class="help">Le brief sera envoyé à notre backend sécurisé. Ta clé Groq reste côté serveur.</div>
+              <div class="form-actions"><button class="secondary" id="back3">← Retour</button><button class="primary" id="generate">Générer avec Groq ✦</button></div>
             </div>
           </aside>
 
@@ -270,7 +270,7 @@
       </section>
     </main>
 
-    <footer>BrandForge AI — studio de marque interactif. La génération IA réelle passe par un backend sécurisé ; aucune clé Gemini n'est exposée dans le navigateur.</footer>
+    <footer>BrandForge AI — studio de marque interactif. La génération IA réelle passe par un backend sécurisé ; aucune clé Groq n'est exposée dans le navigateur.</footer>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -344,14 +344,14 @@
       return String(value ?? "").replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
     }
 
-    async function generateWithGemini(){
+    async function generateWithGroq(){
       readBrief();
       const button = $("generate");
       const status = $("engineStatus");
-      button.textContent = "Gemini travaille…";
+      button.textContent = "Groq travaille…";
       button.disabled = true;
       status.textContent = "Connexion IA…";
-      $("engineNote").textContent = "Envoi sécurisé du brief vers Gemini…";
+      $("engineNote").textContent = "Envoi sécurisé du brief vers Groq…";
       try{
         const response = await fetch("https://brandforge-ai-xi.vercel.app/api/generate?v=20260930", {
           method:"POST",
@@ -383,7 +383,7 @@
         $("socialList").innerHTML = posts.map((p,i) => {
           const text = typeof p === "string" ? p : (p.text || "");
           const title = typeof p === "string" ? "Post" : (p.title || ("Post "+(i+1)));
-          return '<article class="post"><div class="post-top"><span>Post '+String(i+1).padStart(2,"0")+' · '+escapeHtml(title)+'</span><span>Généré par Gemini</span></div><p>'+escapeHtml(text)+'</p><div class="post-actions"><button data-post="'+encodeURIComponent(text)+'">Copier</button></div></article>';
+          return '<article class="post"><div class="post-top"><span>Post '+String(i+1).padStart(2,"0")+' · '+escapeHtml(title)+'</span><span>Généré par Groq</span></div><p>'+escapeHtml(text)+'</p><div class="post-actions"><button data-post="'+encodeURIComponent(text)+'">Copier</button></div></article>';
         }).join("") || '<article class="post"><p>Aucun post n’a été retourné.</p></article>';
         $("siteLogo").textContent = titleCase(state.name);
         $("siteBadge").textContent = "Studio digital · "+state.region;
@@ -394,17 +394,17 @@
         state.ai = r;
         localStorage.setItem("brandforge-project", JSON.stringify(state));
         $("saveState").textContent = "Projet IA sauvegardé sur cet appareil";
-        $("engineNote").textContent = "Génération Gemini terminée · backend sécurisé";
-        status.textContent = "Gemini connecté";
-        showToast("Brand générée avec Gemini ✦");
+        $("engineNote").textContent = "Génération Groq terminée · backend sécurisé";
+        status.textContent = "Groq connecté";
+        showToast("Brand générée avec Groq ✦");
         setView("brand");
       }catch(error){
         status.textContent = "IA indisponible";
-        $("engineNote").textContent = "Erreur Gemini : " + (error.message || "réponse inattendue du backend");
+        $("engineNote").textContent = "Erreur Groq : " + (error.message || "réponse inattendue du backend");
         showToast(error.message || "Erreur de génération");
         console.error(error);
       }finally{
-        button.textContent = "Générer avec Gemini ✦";
+        button.textContent = "Générer avec Groq ✦";
         button.disabled = false;
       }
     }
@@ -467,8 +467,8 @@
 
       localStorage.setItem("brandforge-project", JSON.stringify(state));
       state.generated = true;
-      $("saveState").textContent = "Aperçu local · non généré par Gemini";
-      $("engineNote").textContent = "Aperçu local chargé · clique sur « Générer avec Gemini ✦ » pour utiliser l'IA.";
+      $("saveState").textContent = "Aperçu local · non généré par Groq";
+      $("engineNote").textContent = "Aperçu local chargé · clique sur « Générer avec Groq ✦ » pour utiliser l'IA.";
       ;
     }
 
@@ -526,10 +526,10 @@
         const status = $("engineStatus");
         if(data.configured){
           status.textContent = "Backend prêt";
-          $("engineNote").textContent = "Backend Vercel opérationnel · clé Gemini détectée.";
+          $("engineNote").textContent = "Backend Vercel opérationnel · clé Groq détectée.";
         }else{
           status.textContent = "Clé manquante";
-          $("engineNote").textContent = "Backend Vercel en ligne, mais aucune clé Gemini n’est détectée.";
+          $("engineNote").textContent = "Backend Vercel en ligne, mais aucune clé Groq n’est détectée.";
         }
       }catch(error){
         $("engineStatus").textContent = "Backend hors ligne";
@@ -542,7 +542,7 @@
     $("back2").addEventListener("click",()=>setStep(1));
     $("continue2").addEventListener("click",()=>setStep(3));
     $("back3").addEventListener("click",()=>setStep(2));
-    $("generate").addEventListener("click",generateWithGemini);
+    $("generate").addEventListener("click",generateWithGroq);
     $("exportBtn").addEventListener("click",exportProject);
     $("newBtn").addEventListener("click",clearProject);
     $("heroStart").addEventListener("click",()=>document.querySelector("#studio").scrollIntoView({behavior:"smooth"}));
