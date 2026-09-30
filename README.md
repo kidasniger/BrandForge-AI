@@ -67,3 +67,6 @@ Une fois les services connectés, renseigner dans Vercel :
 Les IDs produits et les prix Pro/Business se configurent depuis `admin.html`; ils ne sont plus obligatoirement stockés dans Vercel. Les anciennes variables `CHARIOW_PRODUCT_PRO` et `CHARIOW_PRODUCT_BUSINESS` restent acceptées comme secours.
 
 Le navigateur ne doit recevoir que l'URL Supabase et la clé publique/publishable Supabase via /api/config. Les clés service_role, Groq, Chariow API et Pulse secret restent côté serveur.
+
+
+<!-- vercel-deploy-trigger: auth-gate-2026-10-01 -->
