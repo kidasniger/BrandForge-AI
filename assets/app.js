@@ -197,6 +197,7 @@ async function setupAccount(){
   if(!window.BFCloud){$("authStatus").textContent="Mode local — connecte Supabase pour activer les comptes.";return}
   try{
     const user=await window.BFCloud.getUser();
+    if(user&&location.pathname.endsWith("account.html")){location.replace(authDestination());return}
     const status=$("authStatus"),out=$("accountName"),signout=$("signoutBtn");
     if(user){
       const meta=user.user_metadata||{};
