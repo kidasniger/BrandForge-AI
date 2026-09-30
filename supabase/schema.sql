@@ -96,3 +96,41 @@ grant select, insert, update, delete on public.projects to authenticated;
 grant all on public.profiles to service_role;
 grant all on public.projects to service_role;
 grant select, insert on public.chariow_pulses to service_role;
+
+create table if not exists public.billing_plans (
+  slug text primary key check (slug in ('pro','business')),
+  name text not null,
+  price_xof integer not null default 0 check (price_xof between 0 and 1000),
+  chariow_product_id text,
+  active boolean not null default true,
+  updated_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.billing_plans enable row level security;
+
+drop policy if exists "billing_plans_no_direct_access" on public.billing_plans;
+
+create or replace function public.touch_billing_plan_updated_at()
+returns trigger
+language plpgsql
+as $
+begin
+  new.updated_at = now();
+  return new;
+end;
+$;
+
+drop trigger if exists billing_plans_touch_updated_at on public.billing_plans;
+create trigger billing_plans_touch_updated_at
+before update on public.billing_plans
+for each row execute procedure public.touch_billing_plan_updated_at();
+
+grant select, insert, update, delete on public.billing_plans to service_role;
+
+insert into public.billing_plans (slug,name,price_xof,chariow_product_id,active)
+values
+  ('pro','Pro',500,null,true),
+  ('business','Business',1000,null,true)
+on conflict (slug) do nothing;
