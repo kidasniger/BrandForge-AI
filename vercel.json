@@ -1,6 +1,7 @@
 {
   "functions": {
-    "api/generate.js": {
+    "api/*.js": {
+      "runtime": "nodejs22.x",
       "maxDuration": 30
     }
   }
