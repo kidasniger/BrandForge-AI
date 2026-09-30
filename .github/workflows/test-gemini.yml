@@ -1,0 +1,40 @@
+name: Test Gemini API
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-gemini:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that GEMINI_API_KEY is available
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "GEMINI_API_KEY is not configured in GitHub Secrets."
+            exit 1
+          fi
+          echo "GEMINI_API_KEY is present."
+
+      - name: Call Gemini securely
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          response=$(curl -sS --fail-with-body \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent" \
+            -H "x-goog-api-key: $GEMINI_API_KEY" \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d '{
+              "contents": [{
+                "parts": [{
+                  "text": "Reply with exactly: BrandForge Gemini OK"
+                }]
+              }]
+            }')
+
+          echo "$response" | jq -e '.candidates[0].content.parts[0].text' >/dev/null
+          echo "Gemini API connection succeeded."
