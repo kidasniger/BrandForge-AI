@@ -180,7 +180,7 @@ function renderTemplates(){
   el.innerHTML=Object.entries(templates).map(([k,t])=>'<article class="feature template-card"><div class="feature-icon">✦</div><h3>'+esc(t.name)+'</h3><p>'+esc(t.businessType)+' · '+esc(t.goal)+'</p><div class="asset-actions"><button class="primary" data-template="'+k+'">Utiliser ce modèle</button></div></article>').join("");
 }
 function renderPricing(){
-  const el=$("pricingNote");if(el)el.textContent="Les plans Pro et Business sont préparés pour Checkout. Le paiement réel nécessite la connexion Stripe et les Price IDs de production.";
+  const el=$("pricingNote");if(el)el.textContent="Paiement via Chariow. Les prix et la durée des offres sont configurés sur les produits Chariow.";
 }
 async function setupAccount(){
   if(!$("authStatus"))return;
@@ -189,6 +189,12 @@ async function setupAccount(){
     const user=await window.BFCloud.getUser();
     const status=$("authStatus"),out=$("accountName"),signout=$("signoutBtn");
     if(user){
+      const meta=user.user_metadata||{};
+      if($("authName"))$("authName").value=meta.full_name||"";
+      if($("authPhone"))$("authPhone").value=meta.phone||"";
+      if($("authCountry"))$("authCountry").value=meta.country_code||"NE";
+      if($("checkoutPhone"))$("checkoutPhone").value=meta.phone||"";
+      if($("checkoutCountry"))$("checkoutCountry").value=meta.country_code||"NE";
       status.textContent="Connecté · "+(user.email||"");
       if(out)out.textContent=user.user_metadata?.full_name||user.email||"Compte";
       if(signout)signout.style.display="block";
@@ -206,13 +212,24 @@ async function setupAccount(){
   }catch(e){$("authStatus").textContent="Cloud configuré mais indisponible : "+(e.message||"erreur")}
 }
 async function authSignup(){
-  try{const d=await window.BFCloud.signUp(clean($("authEmail").value),$("authPassword").value,clean($("authName").value));toast(d.session?"Compte créé et connecté":"Compte créé — vérifie ton email");await setupAccount()}catch(e){toast(e.message||"Inscription impossible")}
+  try{const d=await window.BFCloud.signUp(clean($("authEmail").value),$("authPassword").value,clean($("authName").value),clean($("authPhone")?.value),clean($("authCountry")?.value)||"NE");toast(d.session?"Compte créé et connecté":"Compte créé — vérifie ton email");await setupAccount()}catch(e){toast(e.message||"Inscription impossible")}
 }
 async function authSignin(){try{await window.BFCloud.signIn(clean($("authEmail").value),$("authPassword").value);toast("Connexion réussie");await setupAccount();renderProjects()}catch(e){toast(e.message||"Connexion impossible")}}
 async function authSignout(){try{await window.BFCloud.signOut();toast("Déconnexion réussie");await setupAccount()}catch(e){toast(e.message||"Déconnexion impossible")}}
 function setupCheckoutLinks(){
   document.querySelectorAll("[data-plan]").forEach(a=>a.addEventListener("click",async e=>{
-    e.preventDefault();try{await window.BFCloud.checkout(a.dataset.plan)}catch(err){toast(err.message||"Checkout indisponible")}
+    e.preventDefault();
+    try{
+      const phone=clean($("checkoutPhone")?.value||$("authPhone")?.value);
+      const countryCode=clean($("checkoutCountry")?.value||$("authCountry")?.value)||"NE";
+      if(!phone){
+        $("checkoutPhone")?.focus();
+        toast("Ajoute ton numéro de téléphone pour continuer.");
+        return;
+      }
+      if(window.BFCloud?.updateContact) await window.BFCloud.updateContact(phone,countryCode);
+      await window.BFCloud.checkout(a.dataset.plan,phone,countryCode);
+    }catch(err){toast(err.message||"Checkout indisponible")}
   }));
 }
 function setup(){
@@ -231,7 +248,7 @@ function setup(){
   if($("signinBtn"))$("signinBtn").addEventListener("click",authSignin);
   if($("signoutBtn"))$("signoutBtn").addEventListener("click",authSignout);
   setupCheckoutLinks();
-  if(location.search.includes("checkout=success"))toast("Paiement terminé — ton abonnement sera activé après confirmation Stripe.");
+  if(location.search.includes("checkout=success"))toast("Paiement terminé — Chariow va confirmer la vente et synchroniser ton plan.");
   const health=$("health");if(health)fetch(API_URL+"?health=1",{cache:"no-store"}).then(r=>r.json()).then(d=>health.textContent=d.configured?"Groq connecté":"Clé Groq manquante").catch(()=>health.textContent="Backend indisponible");
   document.addEventListener("click",e=>{
     const c=e.target.closest("[data-copy]");if(c){const el=document.getElementById(c.dataset.copy);copyText(el?el.textContent:decodeURIComponent(c.dataset.copy))}
