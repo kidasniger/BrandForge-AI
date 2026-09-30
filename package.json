@@ -1,0 +1,7 @@
+{
+  "name": "brandforge-ai",
+  "private": true,
+  "engines": {
+    "node": "24.x"
+  }
+}
