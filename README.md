@@ -50,3 +50,16 @@ Le schéma Supabase est versionné, mais l'authentification et la synchronisatio
 ## Sécurité
 
 Ne place jamais une clé API Groq ou un autre secret dans le frontend ou dans le dépôt public. Les secrets doivent rester côté serveur via les variables d'environnement.
+
+## Variables Vercel pour le SaaS
+Une fois les services connectés, renseigner dans Vercel :
+- GROQ_API_KEY
+- SUPABASE_URL
+- SUPABASE_ANON_KEY
+- SUPABASE_SERVICE_ROLE_KEY (serveur uniquement)
+- STRIPE_SECRET_KEY (serveur uniquement)
+- STRIPE_WEBHOOK_SECRET (serveur uniquement)
+- STRIPE_PRICE_PRO
+- STRIPE_PRICE_BUSINESS
+
+Le navigateur ne doit recevoir que l'URL Supabase et la clé publique/publishable Supabase via /api/config. Les clés service_role, Groq et Stripe secret restent côté serveur.
