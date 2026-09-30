@@ -115,11 +115,11 @@ drop policy if exists "billing_plans_no_direct_access" on public.billing_plans;
 create or replace function public.touch_billing_plan_updated_at()
 returns trigger
 language plpgsql
-as $
+as $$
 begin
   new.updated_at = now();
   return new;
-end;
+$$;
 $;
 
 drop trigger if exists billing_plans_touch_updated_at on public.billing_plans;
