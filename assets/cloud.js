@@ -84,6 +84,11 @@
     const {error}=await c.from("projects").delete().eq("id",id);
     if(error) throw error;
   }
+  async function getProfile(){
+    const c=await loadClient(),user=await getUser(); if(!c||!user)return null;
+    const {data,error}=await c.from("profiles").select("id,full_name,plan,billing_status,stripe_customer_id").eq("id",user.id).maybeSingle();
+    if(error) throw error; return data||null;
+  }
   async function checkout(plan){
     const session=await getSession();
     if(!session) throw new Error("Connecte-toi avant de choisir un abonnement.");
@@ -96,5 +101,5 @@
     location.href=data.url;
   }
 
-  window.BFCloud={getClient,getSession,getUser,signIn,signUp,signOut,listProjects,upsertProject,deleteProject,checkout};
+  window.BFCloud={getClient,getSession,getUser,getProfile,signIn,signUp,signOut,listProjects,upsertProject,deleteProject,checkout};
 })();
