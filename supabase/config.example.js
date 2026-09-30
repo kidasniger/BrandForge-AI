@@ -1,0 +1,1 @@
+window.BRANDFORGE_CONFIG={supabaseUrl:"",supabaseAnonKey:""};
