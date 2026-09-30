@@ -25,6 +25,25 @@ function posts(){
 function storageKey(base){const uid=String(window.__BF_USER_ID||"").trim();return uid?base+"::"+uid:base+"::guest"}
 function saveCurrent(){if(!window.__BF_USER_ID)return;localStorage.setItem(storageKey("brandforge-project"),JSON.stringify(state))}
 function loadCurrent(){if(!window.__BF_USER_ID)return;try{const s=JSON.parse(localStorage.getItem(storageKey("brandforge-project"))||"null");if(s)Object.assign(state,s)}catch{}}
+function sanitizeVisibleText(){
+  if(!document.body)return;
+  const replacements=[
+    [/Paiement via Chariow/gi,"Paiement sécurisé"],
+    [/page sécurisée Chariow/gi,"page de paiement sécurisée"],
+    [/Payer avec Chariow/gi,"Choisir une offre"],
+    [/Groq AI/gi,"IA"],
+    [/Groq/gi,"IA"],
+    [/Supabase/gi,"service cloud"],
+    [/Vercel/gi,"plateforme"],
+    [/backend/gi,"service"],
+    [/API/gi,"service"],
+    [/clé IA/gi,"accès IA"],
+    [/moteur IA/gi,"IA"]
+  ];
+  const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+  const nodes=[];while(w.nextNode())nodes.push(w.currentNode);
+  nodes.forEach(n=>{let v=n.nodeValue;replacements.forEach(([rx,to])=>{v=v.replace(rx,to)});n.nodeValue=v});
+}
 function toast(msg){const t=$("toast");if(!t)return;t.textContent=msg;t.classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.remove("show"),2400)}
 function copyText(v){navigator.clipboard?.writeText(v).then(()=>toast("Copié dans le presse-papiers")).catch(()=>toast("Copie non disponible"))}
 function readBrief(){
@@ -38,23 +57,23 @@ function fillInputs(){["name","offer","goal","audience","tone","promise","cta","
 async function generate(mode="full",instruction=""){
   readBrief();
   const b=$("generateBtn")||$("generateContentBtn")||$("generateGrowthBtn");
-  if(b){b.disabled=true;b.textContent="Groq travaille…"}
-  if($("engineStatus"))$("engineStatus").textContent="Connexion IA…";
+  if(b){b.disabled=true;b.textContent="L’IA travaille…"}
+  if($("engineStatus"))$("engineStatus").textContent="Connexion au service…";
   try{
     const r=await fetch(API_URL+"?v="+Date.now(),{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({mode,brief:{...state},current:state.ai||{},instruction}),cache:"no-store"});
     const d=await r.json().catch(()=>({}));
     if(!r.ok||!d.ok)throw new Error([d.error,d.details].filter(Boolean).join(" — ")||("Backend HTTP "+r.status));
     state.ai=d.result||state.ai||{};state.generated=true;state.projectId=state.projectId||"p_"+Date.now();saveCurrent();
-    if($("engineStatus"))$("engineStatus").textContent="Groq connecté";
+    if($("engineStatus"))$("engineStatus").textContent="Service IA prêt";
     if($("engineNote"))$("engineNote").textContent="Génération Groq terminée · projet sauvegardé";
-    applyAll();toast(mode==="refine"?"Projet amélioré ✦":mode==="content"?"Contenu généré ✦":mode==="growth"?"Plan commercial généré ✦":"Brand générée avec Groq ✦");
+    applyAll();toast(mode==="refine"?"Projet amélioré ✦":mode==="content"?"Contenu généré ✦":mode==="growth"?"Plan commercial généré ✦":"Marque générée avec l’IA ✦");
     if(location.pathname.endsWith("studio.html"))location.href="brand.html";
   }catch(e){
-    if($("engineStatus"))$("engineStatus").textContent="IA indisponible";
-    if($("engineNote"))$("engineNote").textContent="Erreur Groq : "+(e.message||"réponse inattendue");
+    if($("engineStatus"))$("engineStatus").textContent="Service IA indisponible";
+    if($("engineNote"))$("engineNote").textContent="Erreur du service IA : "+(e.message||"réponse inattendue");
     toast(e.message||"Erreur de génération");
-  }finally{if(b){b.disabled=false;b.textContent=b.id==="generateContentBtn"?"Générer le contenu avec Groq ✦":b.id==="generateGrowthBtn"?"Générer le plan commercial ✦":"Générer la marque avec Groq ✦"}}
+  }finally{if(b){b.disabled=false;b.textContent=b.id==="generateContentBtn"?"Générer le contenu avec l’IA ✦":b.id==="generateGrowthBtn"?"Générer le plan commercial ✦":"Générer la marque avec l’IA ✦"}}
 }
 function applyAll(){loadCurrent();fillInputs();if(!state.generated||!state.ai){renderEmpty();return}renderBrand();renderContent();renderAssets();renderSite();renderGrowth();renderProjects();renderAccount()}
 function renderEmpty(){document.querySelectorAll("[data-empty-state]").forEach(x=>x.hidden=false)}
@@ -135,7 +154,7 @@ async function saveProject(){
       const cloudId=await window.BFCloud.upsertProject(state);
       if(cloudId){state.projectId=cloudId;saveCurrent();toast("Projet synchronisé dans le cloud");renderProjects();}
     }
-  }catch(e){toast("Cloud non synchronisé : "+(e.message||"erreur"))}
+  }catch(e){toast("Synchronisation impossible : "+(e.message||"erreur"))}
 }
 async function loadProject(id){
   let all=JSON.parse(localStorage.getItem(storageKey("brandforge-projects"))||"[]"),p=all.find(x=>x.projectId===id);
@@ -260,7 +279,7 @@ function setup(){
   if($("signinBtn"))$("signinBtn").addEventListener("click",authSignin);
   if($("signoutBtn"))$("signoutBtn").addEventListener("click",authSignout);
   setupCheckoutLinks();
-  if(location.search.includes("checkout=success"))toast("Paiement terminé — Chariow va confirmer la vente et synchroniser ton plan.");
+  if(location.search.includes("checkout=success"))toast("Paiement terminé — ton abonnement sera bientôt activé.");
   const health=$("health");if(health)fetch(API_URL+"?health=1",{cache:"no-store"}).then(r=>r.json()).then(d=>health.textContent=d.configured?"Groq connecté":"Clé Groq manquante").catch(()=>health.textContent="Backend indisponible");
   document.addEventListener("click",e=>{
     const c=e.target.closest("[data-copy]");if(c){const el=document.getElementById(c.dataset.copy);copyText(el?el.textContent:decodeURIComponent(c.dataset.copy))}
@@ -271,4 +290,4 @@ function setup(){
     const t=e.target.closest("[data-template]");if(t)applyTemplate(t.dataset.template);
   });
 }
-document.addEventListener("DOMContentLoaded",()=>Promise.resolve(window.__BF_AUTH_READY||true).then(setup));
+document.addEventListener("DOMContentLoaded",()=>{sanitizeVisibleText();return Promise.resolve(window.__BF_AUTH_READY||true).then(()=>{sanitizeVisibleText();setup()})});
