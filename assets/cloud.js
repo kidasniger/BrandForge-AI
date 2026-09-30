@@ -86,7 +86,7 @@
   }
   async function getProfile(){
     const c=await loadClient(),user=await getUser(); if(!c||!user)return null;
-    const {data,error}=await c.from("profiles").select("id,full_name,plan,billing_status,stripe_customer_id").eq("id",user.id).maybeSingle();
+    const {data,error}=await c.from("profiles").select("id,full_name,plan,billing_status,chariow_customer_id,chariow_last_sale_id").eq("id",user.id).maybeSingle();
     if(error) throw error; return data||null;
   }
   async function checkout(plan){
