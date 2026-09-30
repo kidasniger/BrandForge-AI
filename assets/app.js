@@ -241,8 +241,8 @@ async function setupAccount(){
     }
   }catch(e){$("authStatus").textContent="Cloud configuré mais indisponible : "+(e.message||"erreur")}
 }
-async function authDestination(){const p=new URLSearchParams(location.search).get("next");return p&&["studio.html","brand.html","content.html","assets.html","site.html","projects.html","growth.html","templates.html","dashboard.html"].some(x=>p===x||p.startsWith(x+"?")||p.startsWith(x+"#"))?p:"dashboard.html"}
-function authSignup(){
+function authDestination(){const p=new URLSearchParams(location.search).get("next");return p&&["studio.html","brand.html","content.html","assets.html","site.html","projects.html","growth.html","templates.html","dashboard.html"].some(x=>p===x||p.startsWith(x+"?")||p.startsWith(x+"#"))?p:"dashboard.html"}
+async function authSignup(){
   try{const d=await window.BFCloud.signUp(clean($("authEmail").value),$("authPassword").value,clean($("authName").value),clean($("authPhone")?.value),clean($("authCountry")?.value)||"NE");toast(d.session?"Compte créé et connecté":"Compte créé — vérifie ton email");if(d.session){location.replace(authDestination())}else await setupAccount()}catch(e){toast(e.message||"Inscription impossible")}
 }
 async function authSignin(){try{await window.BFCloud.signIn(clean($("authEmail").value),$("authPassword").value);toast("Connexion réussie");await setupAccount();renderProjects()}catch(e){toast(e.message||"Connexion impossible")}}
