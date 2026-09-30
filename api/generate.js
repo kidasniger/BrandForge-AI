@@ -19,7 +19,12 @@ function corsHeaders(req) {
 }
 
 function send(res, req, status, data) {
-  res.status(status).set(corsHeaders(req)).json(data);
+  const headers = corsHeaders(req);
+  for (const [name, value] of Object.entries(headers)) {
+    res.setHeader(name, value);
+  }
+  res.statusCode = status;
+  res.end(JSON.stringify(data));
 }
 
 function extractBody(req) {
