@@ -8,7 +8,9 @@
     configPromise = (async()=>{
       if(!window.supabase) return null;
       try{
-        const response = await fetch("https://brandforge-ai-xi.vercel.app/api/config?ts="+Date.now(), {cache:"no-store"});
+        const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),4000);
+        const response = await fetch("https://brandforge-ai-xi.vercel.app/api/config?ts="+Date.now(), {cache:"no-store",signal:controller.signal});
+        clearTimeout(timer);
         const cfg = await response.json().catch(()=>({}));
         const supabaseUrl = cfg.supabaseUrl || "https://uuystjjbgjpmzptmltmr.supabase.co";
         const supabaseAnonKey = cfg.supabaseAnonKey || "sb_publishable_w3AbTGDs3GuVkK3tqHQPdw_8ujrYv89";
