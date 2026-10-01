@@ -19,6 +19,7 @@
     if(!productId){host.innerHTML="";return}
     host.innerHTML="";
     const widget=document.createElement("div");
+    widget.id="chariow-widget-"+productId;
     widget.dataset.productId=productId;
     widget.dataset.storeDomain="ylpkposv.mychariow.market";
     widget.dataset.style="tap";
