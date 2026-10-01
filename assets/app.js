@@ -296,7 +296,7 @@ function renderChariowWidget(targetId,productRef,loggedIn){
     script.id="chariow-widget-script";script.src="https://js.chariowcdn.com/v1/widget.min.js";script.async=true;document.head.appendChild(script);
   }
 }
-async function renderPricing(){
+async async function renderPricing(){
   const el=$("pricingNote");if(el)el.textContent="Choisis ton offre. Ton abonnement reste lié à ton compte.";
   try{
     let plans=[];
