@@ -47,7 +47,9 @@ function sanitizeVisibleText(){
     [/backend/gi,"service"],
     [/API/gi,"service"],
     [/clé IA/gi,"accès IA"],
-    [/moteur IA/gi,"IA"]
+    [/moteur IA/gi,"IA"],
+    [/Paiement sécurisé \. Les offres restent volontairement accessibles, avec un maximum de 1 000 FCFA par mois\./gi,"Choisis ton offre. Le paiement est sécurisé."],
+    [/Paiement via Chariow\. Les offres restent volontairement accessibles, avec un maximum de 1 000 FCFA par mois\./gi,"Choisis ton offre. Le paiement est sécurisé."]
   ];
   const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
   const nodes=[];while(w.nextNode())nodes.push(w.currentNode);
