@@ -1,6 +1,63 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BrandForge AI — Mon espace</title><link rel="stylesheet" href="assets/styles.css?v=brand4"><link rel="icon" type="image/svg+xml" href="assets/brandforge-icon.svg?v=4"><link rel="apple-touch-icon" href="assets/brandforge-icon.svg?v=4"></head><body><div class="wrap"><header class="topbar"><a class="brand" href="index.html"><span class="mark"></span><span class="brand-text">BrandForge <span>AI</span></span></a><nav class="nav"><a href="studio.html">Studio</a><a href="templates.html">Templates</a><a href="#offers">Offres</a><a href="projects.html">Projets</a><a href="admin.html">Admin</a></nav></header><main>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BrandForge AI — Mon espace</title><link rel="stylesheet" href="assets/styles.css?v=brand5"><link rel="icon" type="image/svg+xml" href="assets/brandforge-icon.svg?v=5"><link rel="alternate icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=5"><link rel="apple-touch-icon" href="assets/brandforge-icon.svg?v=5"></head><body><div class="wrap"><header class="topbar"><a class="brand" href="index.html"><span class="mark"></span><span class="brand-text">BrandForge <span>AI</span></span></a><nav class="nav"><a href="studio.html">Studio</a><a href="templates.html">Templates</a><a href="#offers">Offres</a><a href="projects.html">Projets</a><a href="admin.html">Admin</a></nav></header><main>
 <section class="page-hero"><span class="eyebrow">Espace privé</span><h1>Bienvenue dans <span class="gradient">ton studio.</span></h1><p>Retrouve tes projets et lance une nouvelle création. Tes données restent liées à ton compte.</p></section>
 <section class="section"><div id="spaceLoading" class="empty">Vérification de la session…</div><div id="spaceApp" hidden>
 <div class="four-col"><div class="card metric"><strong id="spaceProjects">0</strong><span>projets enregistrés</span></div><div class="card metric"><strong id="spacePlan">Free</strong><span>plan actuel</span></div><div class="card metric"><strong>IA</strong><span>création intelligente</span></div><div class="card metric"><strong>Paiement</strong><span>abonnement sécurisé</span></div></div>
 <div class="two-col" style="margin-top:14px"><article class="card"><h3>Créer un nouveau projet</h3><p>Commence avec ton brief et génère ta marque, ton contenu, tes assets et ton site.</p><div class="form-actions"><a class="primary" href="studio.html">Ouvrir le Studio</a><a class="secondary" href="projects.html">Voir mes projets</a></div></article><article class="card"><h3>Mon compte</h3><p id="spaceMessage">Session active. Tes informations de compte restent privées sur cet espace.</p><div class="form-actions"><button class="secondary" id="spaceLogout">Se déconnecter</button><a class="tiny" href="pricing.html">Gérer mon plan</a></div></article></div>
-</div></section><section id="offers" class="section-block" style="margin-top:20px"><div class="section-head"><div><h2>Mes offres</h2><p>Choisis ton abonnement sans quitter ton espace.</p></div></div><div class="two-col"><article class="card"><h3>Pro</h3><div class="price" id="dashboardProPrice">—</div><div id="dashboardProWidget" class="checkout-widget"></div></article><article class="card"><h3>Business</h3><div class="price" id="dashboardBusinessPrice">—</div><div id="dashboardBusinessWidget" class="checkout-widget"></div></article></div></section></main><footer>BrandForge AI · espace personnel</footer></div><div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="assets/cloud.js"></script><script>function loadDashboardOffers(){fetch("https://brandforge-ai-xi.vercel.app/api/billing-config?ts="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(async d=>{const m=Object.fromEntries((d.plans||[]).map(p=>[p.slug,p]));const s=await BFCloud.getSession();for(const [slug,priceId,widgetId] of [["pro","dashboardProPrice","dashboardProWidget"],["business","dashboardBusinessPrice","dashboardBusinessWidget"]]){const p=m[slug];if($(priceId))$(priceId).innerHTML=p?String(p.price_xof)+" FCFA <small>/ mois</small>":"—";const host=$(widgetId);if(host){host.innerHTML=s&&p?.chariow_product_id?'<a class="primary" href="pricing.html?from=dashboard">Choisir cette offre</a>':'<a class="secondary" href="account.html?mode=signin">Se connecter</a>'}}}).catch(()=>{});}document.addEventListener("DOMContentLoaded",async()=>{const $=id=>document.getElementById(id);const toast=m=>{const t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)};try{const s=await BFCloud.getSession(),u=await BFCloud.getUser();if(!s||!u){location.replace("account.html?next=dashboard");return}let p=null;try{p=await BFCloud.getProfile()}catch{};$("spaceProjects").textContent=(JSON.parse(localStorage.getItem("brandforge-projects::"+u.id)||"[]")||[]).length;$("spacePlan").textContent=p?.plan||"Free";$("spaceLoading").hidden=true;$("spaceApp").hidden=false;$("spaceLogout").onclick=async()=>{await BFCloud.signOut();location.replace("account.html")};loadDashboardOffers();}catch(e){$("spaceLoading").textContent="Session indisponible. Connecte-toi pour continuer.";}});</script></body></html>
+</div></section><section id="offers" class="section-block" style="margin-top:20px"><div class="section-head"><div><h2>Mes offres</h2><p>Choisis ton abonnement sans quitter ton espace.</p></div></div><div class="two-col"><article class="card"><h3>Pro</h3><div class="price" id="dashboardProPrice">—</div><div id="dashboardProWidget" class="checkout-widget"></div></article><article class="card"><h3>Business</h3><div class="price" id="dashboardBusinessPrice">—</div><div id="dashboardBusinessWidget" class="checkout-widget"></div></article></div></section></main><footer>BrandForge AI · espace personnel</footer></div><div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="assets/cloud.js"></script><script>const $=id=>document.getElementById(id);
+function normalizeProductRef(value){
+  const v=String(value||"").trim();if(!v)return "";
+  try{const u=new URL(v);const parts=u.pathname.split("/").filter(Boolean);const p=parts.reverse().find(x=>/^prd_[A-Za-z0-9_-]+$/.test(x));if(p)return p}catch{}
+  return v;
+}
+function mountDashboardWidget(hostId,productRef,loggedIn){
+  const host=$(hostId);if(!host)return;
+  host.innerHTML="";
+  if(!loggedIn){host.innerHTML='<a class="secondary" href="account.html?mode=signin">Se connecter pour continuer</a>';return}
+  const productId=normalizeProductRef(productRef);
+  if(!productId){host.innerHTML='<span class="muted">Offre non configurée</span>';return}
+  const widget=document.createElement("div");
+  widget.id=hostId+"-chariow";
+  widget.dataset.productId=productId;
+  widget.dataset.storeDomain="ylpkposv.mychariow.market";
+  widget.dataset.style="tap";
+  widget.dataset.borderStyle="rounded";
+  widget.dataset.ctaWidth="xs";
+  widget.dataset.backgroundColor="#FFFFFF";
+  widget.dataset.ctaAnimation="shine";
+  widget.dataset.locale="fr";
+  widget.dataset.primaryColor="#ffcc00";
+  host.appendChild(widget);
+  if(!document.getElementById("chariow-widget-css")){
+    const link=document.createElement("link");link.id="chariow-widget-css";link.rel="stylesheet";link.href="https://js.chariowcdn.com/v1/widget.min.css";document.head.appendChild(link);
+  }
+  if(document.getElementById("chariow-widget-script"))return;
+  const script=document.createElement("script");script.id="chariow-widget-script";script.src="https://js.chariowcdn.com/v1/widget.min.js";script.async=true;document.head.appendChild(script);
+}
+async function loadDashboardOffers(){
+  try{
+    const d=await fetch("https://brandforge-ai-xi.vercel.app/api/billing-config?ts="+Date.now(),{cache:"no-store"}).then(r=>r.json());
+    const m=Object.fromEntries((d.plans||[]).map(p=>[p.slug,p]));
+    const session=await BFCloud.getSession();
+    for(const [slug,priceId,widgetId] of [["pro","dashboardProPrice","dashboardProWidget"],["business","dashboardBusinessPrice","dashboardBusinessWidget"]]){
+      const p=m[slug];
+      if($(priceId))$(priceId).innerHTML=p?String(p.price_xof)+" FCFA <small>/ mois</small>":"—";
+      mountDashboardWidget(widgetId,p?.chariow_product_id,!!session);
+    }
+  }catch{
+    ["dashboardProWidget","dashboardBusinessWidget"].forEach(id=>{if($(id))$(id).innerHTML='<a class="secondary" href="#offers">Réessayer</a>'});
+  }
+}
+document.addEventListener("DOMContentLoaded",async()=>{
+  const toast=m=>{const t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)};
+  try{
+    const s=await BFCloud.getSession(),u=await BFCloud.getUser();
+    if(!s||!u){location.replace("account.html?next=dashboard");return}
+    let p=null;try{p=await BFCloud.getProfile()}catch{}
+    let projects=[];try{projects=await BFCloud.listProjects()}catch{}
+    $("spaceProjects").textContent=projects.length;
+    $("spacePlan").textContent=p?.plan||"Free";
+    $("spaceLoading").hidden=true;$("spaceApp").hidden=false;
+    $("spaceLogout").onclick=async()=>{await BFCloud.signOut();location.replace("account.html")};
+    loadDashboardOffers();
+  }catch(e){$("spaceLoading").textContent="Session indisponible. Connecte-toi pour continuer.";}
+});</script></body></html>
