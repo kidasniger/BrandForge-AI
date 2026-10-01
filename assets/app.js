@@ -259,16 +259,51 @@ function renderChariowWidget(hostId,productId,loggedIn){
   script.async=true;
   document.head.appendChild(script);
 }
+async function normalizeProductRef(value){
+  const v=String(value||"").trim();if(!v)return "";
+  try{
+    const u=new URL(v);
+    const parts=u.pathname.split("/").filter(Boolean);
+    const p=parts.reverse().find(x=>/^prd_[A-Za-z0-9_-]+$/.test(x));
+    if(p)return p;
+  }catch{}
+  return v;
+}
+function renderChariowWidget(targetId,productRef,loggedIn){
+  const host=$(targetId);if(!host)return;
+  host.innerHTML="";
+  if(!loggedIn){host.innerHTML='<a class="primary" href="account.html?mode=signin">Se connecter pour continuer</a>';return}
+  const productId=normalizeProductRef(productRef);
+  if(!productId){host.innerHTML='<span class="muted">Offre non configurée</span>';return}
+  const widget=document.createElement("div");
+  widget.id=targetId+"-chariow";
+  widget.dataset.productId=productId;
+  widget.dataset.storeDomain="ylpkposv.mychariow.market";
+  widget.dataset.style="tap";
+  widget.dataset.borderStyle="rounded";
+  widget.dataset.ctaWidth="xs";
+  widget.dataset.backgroundColor="#FFFFFF";
+  widget.dataset.ctaAnimation="shine";
+  widget.dataset.locale="fr";
+  widget.dataset.primaryColor="#ffcc00";
+  host.appendChild(widget);
+  if(!document.getElementById("chariow-widget-css")){
+    const link=document.createElement("link");
+    link.id="chariow-widget-css";link.rel="stylesheet";link.href="https://js.chariowcdn.com/v1/widget.min.css";document.head.appendChild(link);
+  }
+  if(!document.getElementById("chariow-widget-script")){
+    const script=document.createElement("script");
+    script.id="chariow-widget-script";script.src="https://js.chariowcdn.com/v1/widget.min.js";script.async=true;document.head.appendChild(script);
+  }
+}
 async function renderPricing(){
-  const el=$("pricingNote");if(el)el.textContent="Les tarifs et produits sont gérés depuis l’administration.";
+  const el=$("pricingNote");if(el)el.textContent="Choisis ton offre. Ton abonnement reste lié à ton compte.";
   try{
     let plans=[];
-    if(window.BFCloud?.getClient){
-      const c=await window.BFCloud.getClient();
-      if(c){
-        const q=await c.from("billing_plans").select("slug,name,price_xof,chariow_product_id,active").eq("active",true).order("slug");
-        if(!q.error)plans=q.data||[];
-      }
+    const client=await window.BFCloud?.getClient?.();
+    if(client){
+      const q=await client.from("billing_plans").select("slug,name,price_xof,chariow_product_id,active").eq("active",true).order("slug");
+      if(!q.error)plans=q.data||[];
     }
     if(!plans.length){
       const r=await fetch("https://brandforge-ai-xi.vercel.app/api/billing-config?ts="+Date.now(),{cache:"no-store"});
