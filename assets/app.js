@@ -1,4 +1,4 @@
-function ensureBrandAssets(){if(document.head&&!document.getElementById("bf-favicon")){document.head.insertAdjacentHTML("beforeend",'<link id="bf-favicon" rel="icon" href="assets/brandforge-icon.svg?v=1"><link rel="apple-touch-icon" href="assets/brandforge-icon.svg?v=1"><meta name="theme-color" content="#07080c">')}}
+function ensureBrandAssets(){if(document.head&&!document.getElementById("bf-favicon")){document.head.insertAdjacentHTML("beforeend",'<link id="bf-favicon" rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=3"><link rel="apple-touch-icon" href="assets/favicon-32.png?v=3"><meta name="theme-color" content="#07080c">')}}
 ensureBrandAssets();
 const API_URL="https://brandforge-ai-xi.vercel.app/api/generate";
 const DEFAULT_STATE={
