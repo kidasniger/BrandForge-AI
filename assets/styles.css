@@ -60,3 +60,9 @@ html,body{max-width:100%;overflow-x:hidden}img,svg,canvas,video{max-width:100%;h
 @media(max-width:420px){h1{font-size:40px}.page-hero h1{font-size:34px}.site-body h2{font-size:30px}.brand-main h4{font-size:29px}.topbar{padding-top:7px}.brand-text{font-size:15px}.nav a{padding:8px 9px}.card,.account-card,.asset-card,.brand-main,.brand-side{padding:15px}}
 
 .brand-logo-large{display:block;width:min(760px,92%);height:auto;margin:0 auto 28px;filter:drop-shadow(0 20px 55px rgba(50,90,255,.16))}.brand-logo-large + h1{margin-top:0}
+
+/* BrandForge master identity */
+.topbar .brand{width:194px;height:52px;display:block;flex:0 0 194px;background:url("brandforge-logo.svg?v=2") left center/contain no-repeat;background-color:transparent}
+.topbar .brand .mark,.topbar .brand .brand-text{display:none}
+@media(max-width:720px){.topbar .brand{width:164px;height:44px;flex-basis:164px}}
+@media(max-width:420px){.topbar .brand{width:148px;height:40px;flex-basis:148px}}
