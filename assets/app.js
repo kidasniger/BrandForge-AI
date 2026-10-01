@@ -127,28 +127,29 @@ function renderGrowth(){
   if($("offerIdeas"))$("offerIdeas").innerHTML=(r.offerIdeas||[]).map(x=>'<article class="card"><h4>'+esc(x.name||"Offre")+'</h4><p>'+esc(x.description||"")+'</p><p><strong>Idée de prix :</strong> '+esc(x.priceIdea||"À définir")+'</p></article>').join("")||'<div class="empty">Génère le plan commercial dans cette page.</div>';
   if($("keywords"))$("keywords").innerHTML=(r.keywords||[]).map(x=>"<li>"+esc(x)+"</li>").join("")||"<li>Les mots-clés apparaîtront après génération.</li>";
 }
+function renderProjectCards(all){
+  const el=$("projectList");if(!el)return;
+  if(!all.length){el.innerHTML='<div class="empty" style="grid-column:1/-1"><h3>Aucun projet</h3>Crée une marque dans Studio pour commencer.</div>';return}
+  el.innerHTML=all.map(p=>'<article class="project-card"><h3>'+esc(p.name||"Projet")+'</h3><p>'+esc(p.businessType||"")+' · '+esc(p.region||"")+'</p><p>'+esc((p.offer||"").slice(0,120))+'</p><p class="muted">'+(p.cloud?"☁ Synchronisé":"Projet local")+'</p><div class="asset-actions"><button class="secondary" data-load="'+esc(p.projectId)+'">Ouvrir</button><button class="tiny danger" data-delete="'+esc(p.projectId)+'">Supprimer</button></div></article>').join("");
+}
 async function renderProjects(){
   const el=$("projectList");if(!el)return;
   const note=$("projectCloudNote")?.querySelector("p");
-  let all=[];
-  try{all=JSON.parse(localStorage.getItem(storageKey("brandforge-projects"))||"[]");}catch{}
-  if(window.BFCloud){
-    try{
-      const cloud=await Promise.race([
-        window.BFCloud.listProjects(),
-        new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout")),5000))
-      ]);
-      const map=new Map(all.map(p=>[p.projectId,p]));
-      cloud.forEach(p=>map.set(p.projectId,{...map.get(p.projectId),...p,cloud:true}));
-      all=[...map.values()].sort((a,b)=>new Date(b.savedAt||0)-new Date(a.savedAt||0));
-      localStorage.setItem(storageKey("brandforge-projects"),JSON.stringify(all.slice(0,50)));
-      if(note)note.textContent="Connexion active. Tes projets sont isolés et synchronisés avec ton compte.";
-    }catch(e){
-      if(note)note.textContent=all.length?"Connexion cloud indisponible. Tes projets locaux restent accessibles.":"Connexion cloud indisponible. Tu peux créer ton premier projet.";
-    }
-  }else if(note)note.textContent="Connexion requise pour synchroniser tes projets.";
-  if(!all.length){el.innerHTML='<div class="empty" style="grid-column:1/-1"><h3>Aucun projet</h3>Crée une marque dans Studio pour commencer.</div>';return}
-  el.innerHTML=all.map(p=>'<article class="project-card"><h3>'+esc(p.name||"Projet")+'</h3><p>'+esc(p.businessType||"")+' · '+esc(p.region||"")+'</p><p>'+esc((p.offer||"").slice(0,120))+'</p><p class="muted">'+(p.cloud?"☁ Synchronisé":"Appareil")+'</p><div class="asset-actions"><button class="secondary" data-load="'+esc(p.projectId)+'">Ouvrir</button><button class="tiny danger" data-delete="'+esc(p.projectId)+'">Supprimer</button></div></article>').join("");
+  let all=[];try{all=JSON.parse(localStorage.getItem(storageKey("brandforge-projects"))||"[]")}catch{}
+  renderProjectCards(all);
+  if(note)note.textContent="Tes projets sont privés et associés à ton compte.";
+  if(!window.BFCloud)return;
+  try{
+    const cloud=await Promise.race([window.BFCloud.listProjects(),new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout")),5000))]);
+    const map=new Map(all.map(p=>[p.projectId,p]));
+    cloud.forEach(p=>map.set(p.projectId,{...map.get(p.projectId),...p,cloud:true}));
+    all=[...map.values()].sort((a,b)=>new Date(b.savedAt||0)-new Date(a.savedAt||0));
+    localStorage.setItem(storageKey("brandforge-projects"),JSON.stringify(all.slice(0,50)));
+    renderProjectCards(all);
+    if(note)note.textContent="Tes projets sont synchronisés avec ton compte.";
+  }catch{
+    if(note)note.textContent="Tes projets restent disponibles sur cet appareil.";
+  }
 }
 async function saveProject(){
   readBrief();
