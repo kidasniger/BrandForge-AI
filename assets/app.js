@@ -25,6 +25,13 @@ function posts(){
 function storageKey(base){const uid=String(window.__BF_USER_ID||"").trim();return uid?base+"::"+uid:base+"::guest"}
 function saveCurrent(){if(!window.__BF_USER_ID)return;localStorage.setItem(storageKey("brandforge-project"),JSON.stringify(state))}
 function loadCurrent(){if(!window.__BF_USER_ID)return;try{const s=JSON.parse(localStorage.getItem(storageKey("brandforge-project"))||"null");if(s)Object.assign(state,s)}catch{}}
+function persistProjectLocal(){
+  if(!window.__BF_USER_ID)return;
+  let all=[];try{all=JSON.parse(localStorage.getItem(storageKey("brandforge-projects"))||"[]")}catch{}
+  const snap={...state,generated:true,savedAt:new Date().toISOString()};
+  const i=all.findIndex(x=>x.projectId===snap.projectId);if(i>=0)all[i]=snap;else all.unshift(snap);
+  localStorage.setItem(storageKey("brandforge-projects"),JSON.stringify(all.slice(0,50)));
+}
 function sanitizeVisibleText(){
   if(!document.body)return;
   const replacements=[
@@ -64,7 +71,14 @@ async function generate(mode="full",instruction=""){
       body:JSON.stringify({mode,brief:{...state},current:state.ai||{},instruction}),cache:"no-store"});
     const d=await r.json().catch(()=>({}));
     if(!r.ok||!d.ok)throw new Error([d.error,d.details].filter(Boolean).join(" — ")||("Backend HTTP "+r.status));
-    state.ai=d.result||state.ai||{};state.generated=true;state.projectId=state.projectId||"p_"+Date.now();saveCurrent();
+    state.ai=d.result||state.ai||{};state.generated=true;state.projectId=state.projectId||"p_"+Date.now();
+    persistProjectLocal();
+    saveCurrent();
+    if(window.BFCloud){
+      window.BFCloud.upsertProject(state).then(cloudId=>{
+        if(cloudId){state.projectId=cloudId;persistProjectLocal();saveCurrent();}
+      }).catch(()=>{});
+    }
     if($("engineStatus"))$("engineStatus").textContent="Service IA prêt";
     if($("engineNote"))$("engineNote").textContent="Génération Groq terminée · projet sauvegardé";
     applyAll();toast(mode==="refine"?"Projet amélioré ✦":mode==="content"?"Contenu généré ✦":mode==="growth"?"Plan commercial généré ✦":"Marque générée avec l’IA ✦");
