@@ -1,5 +1,6 @@
 (()=>{
   document.documentElement.classList.add("auth-pending");
+  if(!document.getElementById("bf-favicon")){document.head.insertAdjacentHTML("beforeend",'<link id="bf-favicon" rel="icon" type="image/svg+xml" href="brandforge-icon.svg?v=4"><link rel="apple-touch-icon" href="brandforge-icon.svg?v=4">')}
   const file=location.pathname.split("/").pop()||"index.html";
   const next=file+(location.search||"")+(location.hash||"");
   const toLogin=()=>location.replace("account.html?next="+encodeURIComponent(next));
