@@ -224,17 +224,55 @@ function renderTemplates(){
   const el=$("templateList");if(!el)return;
   el.innerHTML=Object.entries(templates).map(([k,t])=>'<article class="feature template-card"><div class="feature-icon">✦</div><h3>'+esc(t.name)+'</h3><p>'+esc(t.businessType)+' · '+esc(t.goal)+'</p><div class="asset-actions"><button class="primary" data-template="'+k+'">Utiliser ce modèle</button></div></article>').join("");
 }
+function loadCheckoutWidget(targetId,productId,loggedIn){
+  const host=$(targetId);if(!host)return;
+  host.innerHTML="";
+  if(!productId){host.innerHTML='<a class="secondary" href="account.html?mode=signin">Offre bientôt disponible</a>';return}
+  if(!loggedIn){
+    host.innerHTML='<a class="primary" href="account.html?mode=signin">Se connecter pour continuer</a>';
+    return;
+  }
+  const el=document.createElement("div");
+  el.id=targetId+"-chariow";
+  el.dataset.productId=productId;
+  el.dataset.storeDomain="ylpkposv.mychariow.market";
+  el.dataset.style="tap";
+  el.dataset.borderStyle="rounded";
+  el.dataset.ctaWidth="xs";
+  el.dataset.backgroundColor="#FFFFFF";
+  el.dataset.ctaAnimation="shine";
+  el.dataset.locale="fr";
+  el.dataset.primaryColor="#ffcc00";
+  el.className="chariow-widget";
+  host.appendChild(el);
+  const init=()=>{try{if(window.Chariow?.init)window.Chariow.init(el)}catch{}};
+  if(window.__BF_CHARIOW_READY){init();return}
+  if(!document.getElementById("chariow-widget-script")){
+    const script=document.createElement("script");
+    script.id="chariow-widget-script";script.src="https://js.chariowcdn.com/v1/widget.min.js";script.async=true;
+    script.onload=()=>{window.__BF_CHARIOW_READY=true;init()};
+    document.head.appendChild(script);
+    const link=document.createElement("link");link.rel="stylesheet";link.href="https://js.chariowcdn.com/v1/widget.min.css";document.head.appendChild(link);
+  }else{
+    const s=document.getElementById("chariow-widget-script");s.addEventListener("load",()=>{window.__BF_CHARIOW_READY=true;init()},{once:true});
+  }
+}
 async function renderPricing(){
-  const el=$("pricingNote");if(el)el.textContent="Paiement via Chariow. Les prix sont gérés depuis l’administration.";
+  const el=$("pricingNote");if(el)el.textContent="Les tarifs et produits sont gérés depuis l’administration.";
   try{
     const r=await fetch("https://brandforge-ai-xi.vercel.app/api/billing-config?ts="+Date.now(),{cache:"no-store"});
     const d=await r.json();const map=Object.fromEntries((d.plans||[]).map(p=>[p.slug,p]));
     const pro=map.pro,business=map.business;
     if(pro&&$("pricePro"))$("pricePro").innerHTML=esc(String(pro.price_xof))+" FCFA <small>/ mois</small>";
     if(business&&$("priceBusiness"))$("priceBusiness").innerHTML=esc(String(business.price_xof))+" FCFA <small>/ mois</small>";
-    if(pro&&$("accountProPrice"))$("accountProPrice").textContent=String(pro.price_xof)+" FCFA";
-    if(business&&$("accountBusinessPrice"))$("accountBusinessPrice").textContent=String(business.price_xof)+" FCFA";
-  }catch{}
+    const loggedIn=!!(window.BFCloud&&await window.BFCloud.getSession().catch(()=>null));
+    loadCheckoutWidget("checkoutProWidget",pro?.chariow_product_id,loggedIn);
+    loadCheckoutWidget("checkoutBusinessWidget",business?.chariow_product_id,loggedIn);
+    loadCheckoutWidget("accountProWidget",pro?.chariow_product_id,loggedIn);
+    loadCheckoutWidget("accountBusinessWidget",business?.chariow_product_id,loggedIn);
+  }catch(e){
+    ["checkoutProWidget","checkoutBusinessWidget","accountProWidget","accountBusinessWidget"].forEach(id=>{if($(id))$(id).innerHTML='<a class="secondary" href="account.html?mode=signin">Se connecter</a>'});
+  }
 }
 async function setupAccount(){
   if(!$("authStatus"))return;
@@ -272,22 +310,7 @@ async function authSignup(){
 }
 async function authSignin(){try{await window.BFCloud.signIn(clean($("authEmail").value),$("authPassword").value);toast("Connexion réussie");await setupAccount();renderProjects()}catch(e){toast(e.message||"Connexion impossible")}}
 async function authSignout(){try{await window.BFCloud.signOut();toast("Déconnexion réussie");await setupAccount()}catch(e){toast(e.message||"Déconnexion impossible")}}
-function setupCheckoutLinks(){
-  document.querySelectorAll("[data-plan]").forEach(a=>a.addEventListener("click",async e=>{
-    e.preventDefault();
-    try{
-      const phone=clean($("checkoutPhone")?.value||$("authPhone")?.value);
-      const countryCode=clean($("checkoutCountry")?.value||$("authCountry")?.value)||"NE";
-      if(!phone){
-        $("checkoutPhone")?.focus();
-        toast("Ajoute ton numéro de téléphone pour continuer.");
-        return;
-      }
-      if(window.BFCloud?.updateContact) await window.BFCloud.updateContact(phone,countryCode);
-      await window.BFCloud.checkout(a.dataset.plan,phone,countryCode);
-    }catch(err){toast(err.message||"Checkout indisponible")}
-  }));
-}
+function setupCheckoutLinks(){}
 function setup(){
   loadCurrent();fillInputs();renderTemplates();applyAll();renderPricing();setupAccount();
   if($("generateBtn"))$("generateBtn").addEventListener("click",()=>generate("full"));

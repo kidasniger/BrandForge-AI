@@ -11,10 +11,10 @@ module.exports=async function handler(req,res){
   if(req.method!=="GET"){send(res,405,{error:"Method not allowed"});return}
   const supabaseUrl=process.env.SUPABASE_URL||"",service=process.env.SUPABASE_SERVICE_ROLE_KEY||"";
   if(!supabaseUrl||!service){
-    send(res,200,{ok:true,source:"fallback",plans:[{slug:"pro",name:"Pro",price_xof:500,active:true},{slug:"business",name:"Business",price_xof:1000,active:true}]});return;
+    send(res,200,{ok:true,source:"fallback",plans:[{slug:"pro",name:"Pro",price_xof:500,active:true,chariow_product_id:""},{slug:"business",name:"Business",price_xof:1000,active:true,chariow_product_id:""}]});return;
   }
   try{
-    const r=await fetch(supabaseUrl+"/rest/v1/billing_plans?select=slug,name,price_xof,active&order=slug",{headers:{apikey:service,Authorization:"Bearer "+service}});
+    const r=await fetch(supabaseUrl+"/rest/v1/billing_plans?select=slug,name,price_xof,chariow_product_id,active&order=slug",{headers:{apikey:service,Authorization:"Bearer "+service}});
     const data=await r.json().catch(()=>[]);
     if(!r.ok) throw new Error(data?.message||"Lecture impossible");
     send(res,200,{ok:true,source:"supabase",plans:data||[]});
