@@ -6,6 +6,15 @@ function send(res,status,data){
   res.end(JSON.stringify(data));
 }
 
+function normalizeProductRef(value){
+  const v=String(value||"").trim(); if(!v)return "";
+  try{
+    const u=new URL(v); const parts=u.pathname.split("/").filter(Boolean);
+    const candidate=parts.reverse().find(x=>/^prd_[A-Za-z0-9_-]+$/.test(x));
+    if(candidate)return candidate;
+  }catch{}
+  return v;
+}
 function parseName(fullName){
   const parts=String(fullName||"BrandForge").trim().split(/\s+/).filter(Boolean);
   return {
@@ -60,7 +69,7 @@ module.exports=async function handler(req,res){
     const plansData=await plansResponse.json().catch(()=>[]);
     const configured=Array.isArray(plansData)?plansData[0]:null;
     const legacyProduct=plan==="pro"?process.env.CHARIOW_PRODUCT_PRO:plan==="business"?process.env.CHARIOW_PRODUCT_BUSINESS:"";
-    const productId=String(configured?.chariow_product_id||legacyProduct||"").trim();
+    const productId=normalizeProductRef(configured?.chariow_product_id||legacyProduct);
     if(!plansResponse.ok||!productId){send(res,400,{error:"Ce plan n'est pas encore configuré par l'administrateur.",details:"Ouvre la page Administration et renseigne l'ID produit Chariow."});return}
 
     const name=parseName(user.user_metadata?.full_name||"BrandForge AI");
@@ -72,7 +81,7 @@ module.exports=async function handler(req,res){
       first_name:name.first_name,
       last_name:name.last_name,
       phone:{number:phone,country_code:countryCode},
-      redirect_url:origin+"/account.html?checkout=success",
+      redirect_url:origin+"/dashboard.html?checkout=success",
       custom_metadata:{user_id:user.id,plan,brandforge_plan_price_xof:configured?.price_xof||null}
     };
     if(forwarded)checkoutPayload.customer_ip=forwarded;
