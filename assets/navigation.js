@@ -20,7 +20,7 @@
     .topbar{gap:18px}
     .topbar .nav{display:flex!important;align-items:center;gap:5px;flex:1;min-width:0;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;justify-content:flex-end;scrollbar-width:none;-webkit-overflow-scrolling:touch}
     .topbar .nav::-webkit-scrollbar{display:none}
-    .topbar .nav a{flex:0 0 auto;white-space:nowrap;font-size:14px;padding:9px 11px;line-height:1.2}
+    .topbar .nav a{display:inline-flex!important;align-items:center;flex:0 0 auto;white-space:nowrap;font-size:14px;padding:9px 11px;line-height:1.2}
     .topbar .nav a.active{border-color:#4a3a72;background:rgba(139,92,246,.12);color:#efe9ff}
     .topbar .nav a.primary{color:#fff}
     @media(max-width:920px){
