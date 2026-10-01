@@ -32,7 +32,7 @@ async function init(){
   let plans=[];
   try{
     const c=await window.BFCloud.getClient();
-    if(c){const q=await c.from("billing_plans").select("slug,name,price_xof,chariow_product_id,active").eq("active",true).order("slug");if(!q.error)plans=q.data||[]}
+    if(c){const q=await c.from("billing_plans").select("slug,name,price_xof,chariow_product_id,active").eq("active",true).not("chariow_product_id","is",null).order("slug");if(!q.error)plans=(q.data||[]).filter(p=>p.chariow_product_id)}
   }catch{}
   const session=await window.BFCloud.getSession().catch(()=>null);
   grid.innerHTML="";
