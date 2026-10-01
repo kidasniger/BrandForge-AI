@@ -224,52 +224,63 @@ function renderTemplates(){
   const el=$("templateList");if(!el)return;
   el.innerHTML=Object.entries(templates).map(([k,t])=>'<article class="feature template-card"><div class="feature-icon">✦</div><h3>'+esc(t.name)+'</h3><p>'+esc(t.businessType)+' · '+esc(t.goal)+'</p><div class="asset-actions"><button class="primary" data-template="'+k+'">Utiliser ce modèle</button></div></article>').join("");
 }
-function loadCheckoutWidget(targetId,productId,loggedIn){
-  const host=$(targetId);if(!host)return;
+function renderChariowWidget(hostId,productId,loggedIn){
+  const host=$(hostId);if(!host)return;
   host.innerHTML="";
-  if(!productId){host.innerHTML='<a class="secondary" href="account.html?mode=signin">Offre bientôt disponible</a>';return}
+  if(!productId){
+    host.innerHTML='<p class="muted">Cette offre sera disponible dès que l’administrateur aura configuré son produit.</p>';
+    return;
+  }
   if(!loggedIn){
     host.innerHTML='<a class="primary" href="account.html?mode=signin">Se connecter pour continuer</a>';
     return;
   }
-  const el=document.createElement("div");
-  el.id=targetId+"-chariow";
-  el.dataset.productId=productId;
-  el.dataset.storeDomain="ylpkposv.mychariow.market";
-  el.dataset.style="tap";
-  el.dataset.borderStyle="rounded";
-  el.dataset.ctaWidth="xs";
-  el.dataset.backgroundColor="#FFFFFF";
-  el.dataset.ctaAnimation="shine";
-  el.dataset.locale="fr";
-  el.dataset.primaryColor="#ffcc00";
-  el.className="chariow-widget";
-  host.appendChild(el);
-  const init=()=>{try{if(window.Chariow?.init)window.Chariow.init(el)}catch{}};
-  if(window.__BF_CHARIOW_READY){init();return}
-  if(!document.getElementById("chariow-widget-script")){
-    const script=document.createElement("script");
-    script.id="chariow-widget-script";script.src="https://js.chariowcdn.com/v1/widget.min.js";script.async=true;
-    script.onload=()=>{window.__BF_CHARIOW_READY=true;init()};
-    document.head.appendChild(script);
-    const link=document.createElement("link");link.rel="stylesheet";link.href="https://js.chariowcdn.com/v1/widget.min.css";document.head.appendChild(link);
-  }else{
-    const s=document.getElementById("chariow-widget-script");s.addEventListener("load",()=>{window.__BF_CHARIOW_READY=true;init()},{once:true});
+  const wrap=document.createElement("div");
+  wrap.id=hostId+"-widget";
+  wrap.dataset.productId=productId;
+  wrap.dataset.storeDomain="ylpkposv.mychariow.market";
+  wrap.dataset.style="tap";
+  wrap.dataset.borderStyle="rounded";
+  wrap.dataset.ctaWidth="xs";
+  wrap.dataset.backgroundColor="#FFFFFF";
+  wrap.dataset.ctaAnimation="shine";
+  wrap.dataset.locale="fr";
+  wrap.dataset.primaryColor="#ffcc00";
+  host.appendChild(wrap);
+  if(!document.getElementById("chariow-widget-css")){
+    const link=document.createElement("link");link.id="chariow-widget-css";link.rel="stylesheet";link.href="https://js.chariowcdn.com/v1/widget.min.css";document.head.appendChild(link);
   }
+  if(document.getElementById("chariow-widget-script"))return;
+  const script=document.createElement("script");
+  script.id="chariow-widget-script";
+  script.src="https://js.chariowcdn.com/v1/widget.min.js";
+  script.async=true;
+  document.head.appendChild(script);
 }
 async function renderPricing(){
   const el=$("pricingNote");if(el)el.textContent="Les tarifs et produits sont gérés depuis l’administration.";
   try{
-    const r=await fetch("https://brandforge-ai-xi.vercel.app/api/billing-config?ts="+Date.now(),{cache:"no-store"});
-    const d=await r.json();const map=Object.fromEntries((d.plans||[]).map(p=>[p.slug,p]));
+    let plans=[];
+    if(window.BFCloud?.getClient){
+      const c=await window.BFCloud.getClient();
+      if(c){
+        const q=await c.from("billing_plans").select("slug,name,price_xof,chariow_product_id,active").eq("active",true).order("slug");
+        if(!q.error)plans=q.data||[];
+      }
+    }
+    if(!plans.length){
+      const r=await fetch("https://brandforge-ai-xi.vercel.app/api/billing-config?ts="+Date.now(),{cache:"no-store"});
+      const d=await r.json();plans=d.plans||[];
+    }
+    const map=Object.fromEntries(plans.map(p=>[p.slug,p]));
     const pro=map.pro,business=map.business;
     if(pro&&$("pricePro"))$("pricePro").innerHTML=esc(String(pro.price_xof))+" FCFA <small>/ mois</small>";
     if(business&&$("priceBusiness"))$("priceBusiness").innerHTML=esc(String(business.price_xof))+" FCFA <small>/ mois</small>";
     const loggedIn=!!(window.BFCloud&&await window.BFCloud.getSession().catch(()=>null));
-    loadCheckoutWidget("checkoutProWidget",pro?.chariow_product_id,loggedIn);
-    loadCheckoutWidget("checkoutBusinessWidget",business?.chariow_product_id,loggedIn);
-    loadCheckoutWidget("accountProWidget",pro?.chariow_product_id,loggedIn);
-    loadCheckoutWidget("accountBusinessWidget",business?.chariow_product_id,loggedIn);
+    renderChariowWidget("checkoutProWidget",pro?.chariow_product_id,loggedIn);
+    renderChariowWidget("checkoutBusinessWidget",business?.chariow_product_id,loggedIn);
+    renderChariowWidget("accountProWidget",pro?.chariow_product_id,loggedIn);
+    renderChariowWidget("accountBusinessWidget",business?.chariow_product_id,loggedIn);
   }catch(e){
     ["checkoutProWidget","checkoutBusinessWidget","accountProWidget","accountBusinessWidget"].forEach(id=>{if($(id))$(id).innerHTML='<a class="secondary" href="account.html?mode=signin">Se connecter</a>'});
   }
