@@ -49,12 +49,12 @@
     });
     if(isAdmin)html.push('<a class="active" href="admin.html">Administration</a>');
     nav.innerHTML=html.join("");
-    const favs=[
-      '<link id="bf-favicon-svg" rel="icon" type="image/svg+xml" href="favicon.svg?v=10">',
-      '<link id="bf-favicon-ico" rel="icon" href="favicon.ico?v=10" sizes="any">',
-      '<link id="bf-apple-icon" rel="apple-touch-icon" href="favicon.svg?v=10">'
-    ];
-    favs.forEach(markup=>{const id=(markup.match(/id="([^"]+)/)||[])[1];if(id&&!document.getElementById(id))document.head.insertAdjacentHTML("beforeend",markup)});
+    document.querySelectorAll('link[rel*="icon"]').forEach(el=>el.remove());
+    document.head.insertAdjacentHTML("beforeend",
+      '<link id="bf-favicon-ico" rel="icon" href="favicon.ico?v=11" sizes="any">'+
+      '<link id="bf-favicon-svg" rel="icon" type="image/svg+xml" href="favicon.svg?v=11">'+
+      '<link id="bf-apple-icon" rel="apple-touch-icon" href="favicon.svg?v=11">'
+    );
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",render,{once:true});else render();
 })();

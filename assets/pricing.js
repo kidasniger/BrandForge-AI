@@ -40,7 +40,7 @@
     }
   }
   function loadScript(){
-    if(document.getElementById("chariow-widget-css"))return;
+    
     const link=document.createElement("link");
     link.id="chariow-widget-css";link.rel="stylesheet";link.href="https://js.chariowcdn.com/v1/widget.min.css";
     document.head.appendChild(link);
