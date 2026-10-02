@@ -27,7 +27,7 @@
       .topbar{height:auto;min-height:74px;flex-wrap:wrap;padding:8px 0}
       .topbar .nav{flex-basis:100%;width:100%;justify-content:flex-start;padding:2px 0 5px}
     }
-    @media(max-width:520px){
+    @media(max-width:520px){.topbar .nav a{min-width:fit-content}
       .topbar .nav a{font-size:13px;padding:9px 10px}
     }
   `;
@@ -51,9 +51,8 @@
     nav.innerHTML=html.join("");
     document.querySelectorAll('link[rel*="icon"]').forEach(el=>el.remove());
     document.head.insertAdjacentHTML("beforeend",
-      '<link id="bf-favicon-ico" rel="icon" href="favicon.ico?v=11" sizes="any">'+
-      '<link id="bf-favicon-svg" rel="icon" type="image/svg+xml" href="favicon.svg?v=11">'+
-      '<link id="bf-apple-icon" rel="apple-touch-icon" href="favicon.svg?v=11">'
+      '<link id="bf-favicon-png" rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=13">'+
+      '<link id="bf-apple-icon" rel="apple-touch-icon" sizes="32x32" href="assets/favicon-32.png?v=13">'
     );
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",render,{once:true});else render();
