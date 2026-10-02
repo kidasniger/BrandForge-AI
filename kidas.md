@@ -18,7 +18,7 @@ technologies:
 featured: false
 github: "https://github.com/kidasniger/BrandForge-AI"
 demo: "https://kidasniger.github.io/BrandForge-AI/"
-website: "À renseigner"
+website: "https://kidasniger.github.io/BrandForge-AI/"
 documentation: "À renseigner"
 download: "À renseigner"
 icon: "https://raw.githubusercontent.com/kidasniger/BrandForge-AI/main/assets/brandforge-icon.svg"
@@ -98,7 +98,7 @@ BrandForge AI aide à transformer une idée en marque et en éléments de lancem
 
 - GitHub: "https://github.com/kidasniger/BrandForge-AI"
 - Démo: "https://kidasniger.github.io/BrandForge-AI/"
-- Site web: "À renseigner"
+- Site web: "https://kidasniger.github.io/BrandForge-AI/"
 - Documentation: "À renseigner"
 - Téléchargement: "À renseigner"
 - YouTube: "À renseigner"
@@ -136,7 +136,7 @@ BrandForge AI aide à transformer une idée en marque et en éléments de lancem
 
 ## Canonical URL
 
-À renseigner
+https://kidasniger.github.io/BrandForge-AI/
 
 # Informations supplémentaires
 
